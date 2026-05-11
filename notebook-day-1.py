@@ -661,70 +661,85 @@ def _(mo):
 
     ### Strategy
 
-    We construct a time-varying thrust \(f(t)\) that ensures a smooth descent by enforcing a polynomial motion profile for the vertical position. The corresponding acceleration is then converted into thrust using:
+    We assume a **linear thrust profile**:
 
     \[
-    \ddot{y}(t) = f(t) - g
+    f(t)=a t + b
     \]
+
+    Using the vertical dynamics:
+
+    \[
+    \ddot{y}(t)=f(t)-g
+    \]
+
+    we integrate to obtain expressions for \(y(t)\) and \(\dot{y}(t)\), and determine \(a\) and \(b\) by enforcing the final conditions at \(t=5\).
+
+    ---
+
+    ### Parameter identification
+
+    The coefficients \(a\) and \(b\) are obtained by solving a linear system derived from:
+
+    - final velocity constraint: \(\dot{y}(5)=0\)
+    - final position constraint: \(y(5)=1\)
 
     ---
 
     ### Control law
 
-    The resulting thrust profile is time-dependent and designed to:
-    - reduce the initial downward velocity
-    - smoothly decelerate the booster
-    - ensure zero velocity at landing
+    The resulting thrust is:
+
+    \[
+    f(t)=a t + b
+    \]
+
+    with a saturation ensuring \(f(t)\ge 0\).
 
     ---
 
     ### Simulation
 
-    The system is simulated using `redstart_solve` with the computed control law.
+    The system is simulated using `redstart_solve` with the computed thrust law.
 
     We observe:
     - \(y(t)\): vertical position
-    - comparison with target height \(y = 1\)
-    - verification of smooth descent and final rest condition
+    - \(\dot{y}(t)\): vertical velocity
+    - \(f(t)\): applied thrust
 
     ---
 
     ### Expected behavior
 
-    At \(t = 5\):
-    - \(y(t)\) should reach \(1\)
-    - \(\dot{y}(t)\) should approach \(0\)
+    At \(t=5\):
 
-    This confirms that the controlled thrust achieves a stable landing.
+    - \(y(t)\rightarrow 1\)
+    - \(\dot{y}(t)\rightarrow 0\)
+
+    This confirms that the linear thrust profile achieves a controlled landing with final rest condition.
     """)
     return
 
 
 @app.cell
-def _(g, np):
-    Kp = 3.0
-    Kd = 2.0
+def _(l, np, plt, redstart_solve):
+    def controlled_landing_example():
+        # f(t) = a*t + b, M=1, g=1
+        # ydot(5) = -2 + 5(b-1) + 25a/2 = 0  =>  25a/2 + 5b = 7
+        # y(5)    = 10 - 10 + 25(b-1)/2 + 125a/6 = 0.5
+        #        =>  125a/6 + 25b/2 = 13
 
-    def y_desired(t):
-        return 10 + (1 - 10) * (t / 5)
+        A = np.array([
+            [25/2,  5   ],
+            [125/6, 25/2]
+        ])
+        rhs = np.array([7.0, 13.0])
+        a, b = np.linalg.solve(A, rhs)
+        print(f"f(t) = {a:.6f}·t + {b:.6f}")
 
-    def dy_desired(t):
-        return (1 - 10) / 5
-
-    def f_phi(t, y):
-        x, vx, y_pos, vy, theta, omega = y
-
-        f = g + Kp * (y_desired(t) - y_pos) + Kd * (dy_desired(t) - vy)
-        phi = 0.0
-
-        return np.array([f, phi])
-
-    return (f_phi,)
-
-
-@app.cell
-def _(f_phi, np, plt, redstart_solve):
-    def controlled_landing():
+        def f_phi(t, y):
+            f_val = a * t + b
+            return np.array([max(f_val, 0.0), 0.0])
 
         t_span = [0.0, 5.0]
         y0 = [0.0, 0.0, 10.0, -2.0, 0.0, 0.0]
@@ -733,28 +748,43 @@ def _(f_phi, np, plt, redstart_solve):
 
         t = np.linspace(0, 5, 1000)
         states = sol(t)
+        y_t  = states[2]
+        vy_t = states[3]
+        f_t  = np.array([max(a*ti + b, 0.0) for ti in t])
 
-        y = states[2]
-        vy = states[3]
+        print(f"y(5)  = {sol(5.0)[2]:.6f}  (attendu 0.5)")
+        print(f"vy(5) = {sol(5.0)[3]:.6f}  (attendu 0.0)")
 
-        # compute force
-        f_vals = np.array([
-            f_phi(ti, states[:, i])[0]
-            for i, ti in enumerate(t)
-        ])
+        fig, axes = plt.subplots(1, 3, figsize=(12, 4))
 
-        plt.figure()
+        axes[0].plot(t, y_t, color="#378ADD")
+        axes[0].axhline(0.5, color="grey", ls="--", label=r"$y = \ell/2$")
+        axes[0].axhline(l,   color="grey", ls=":",  label=r"$y = \ell$")
+        axes[0].set_ylim(bottom=0)          # y ne peut pas être négatif
+        axes[0].set_title("Hauteur y(t)")
+        axes[0].set_xlabel("temps t (s)")
+        axes[0].set_ylabel("y (m)")
+        axes[0].legend()
+        axes[0].grid(True)
 
-        plt.plot(t, y, label="y(t)")
-        plt.axhline(1, color="grey", ls="--", label="target")
+        axes[1].plot(t, vy_t, color="#D85A30")
+        axes[1].axhline(0, color="grey", ls="--")
+        axes[1].set_title(r"Vitesse verticale $\dot{y}(t)$")
+        axes[1].set_xlabel("temps t (s)")
+        axes[1].set_ylabel("ẏ (m/s)")
+        axes[1].grid(True)
 
-        plt.title("Corrected Controlled Landing")
-        plt.grid()
-        plt.legend()
+        axes[2].plot(t, f_t, color="#1D9E75")
+        axes[2].set_ylim(bottom=0)
+        axes[2].set_title("Poussée f(t)")
+        axes[2].set_xlabel("temps t (s)")
+        axes[2].set_ylabel("f (N)")
+        axes[2].grid(True)
 
+        plt.tight_layout()
         return plt.gcf()
 
-    controlled_landing()
+    controlled_landing_example()
     return
 
 
@@ -922,6 +952,36 @@ def _(mo):
     )
     ```
     """)
+    return
+
+
+@app.cell
+def _(M, g, l, np):
+    def booster(x, y, theta, f, phi):
+        # scaling: when f = M*g → flame length = l/2
+        flame_length = (l / 2) * (f / (M * g))
+
+        # direction of flame in global frame
+        angle = theta + phi
+
+        dx = flame_length * np.sin(angle)
+        dy = flame_length * np.cos(angle)
+
+        return f"""
+        <g transform="translate({x},{y}) rotate({np.degrees(theta)})">
+
+            <!-- Booster body -->
+            <rect x="-0.1" y="-{l/2}" width="0.2" height="{l}"
+                  fill="black" />
+
+            <!-- Flame -->
+            <line x1="0" y1="-{l/2}"
+                  x2="{dx}" y2="{-l/2 + dy}"
+                  stroke="orange" stroke-width="0.08" />
+
+        </g>
+        """
+
     return
 
 
