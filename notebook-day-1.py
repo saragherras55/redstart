@@ -235,6 +235,30 @@ def _(mo):
     return
 
 
+@app.cell
+def _(J, cos, g, l, sin):
+    def F(s, f, phi):
+        x, y, theta, vx, vy, omega = s
+
+        # Accelerations
+        ax = -f * sin(theta + phi)
+        ay =  f * cos(theta + phi) - g
+        alpha = -(l / J) * f * sin(phi)
+
+        # State derivative
+        dx = vx
+        dy = vy
+        dtheta = omega
+
+        dvx = ax
+        dvy = ay
+        domega = alpha
+
+        return (dx, dy, dtheta, dvx, dvy, domega)
+
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
