@@ -236,25 +236,28 @@ def _(mo):
 
 
 @app.cell
-def _(J, cos, g, l, sin):
+def _(J, M, cos, g, l, omega, sin, theta, vx, vy):
+    # Dimension of the state space
+    n = 6
+    def state(x, y, vx, vy, theta, omega):
+        s = [x, y, vx, vy, theta, omega]
+        return s
+
     def F(s, f, phi):
-        x, y, theta, vx, vy, omega = s
 
-        # Accelerations
-        ax = -f * sin(theta + phi)
-        ay =  f * cos(theta + phi) - g
-        alpha = -(l / J) * f * sin(phi)
-
-        # State derivative
+        # Differential equations
         dx = vx
         dy = vy
+
+        dvx = -f * sin(theta + phi) / M
+        dvy = f * cos(theta + phi) / M - g
+
         dtheta = omega
 
-        dvx = ax
-        dvy = ay
-        domega = alpha
+        domega = -(l / (2 * J)) * f * sin(phi)
 
-        return (dx, dy, dtheta, dvx, dvy, domega)
+        # Return s_dot
+        return [dx, dy, dvx, dvy, dtheta, domega]
 
     return
 
