@@ -146,6 +146,16 @@ def _(mo):
     return
 
 
+@app.cell
+def _(cos, sin):
+    def cartesian_coordinates(f, theta, phi):
+        fx = -f * sin(theta + phi)
+        fy = f * cos(theta + phi)
+        return fx, fy
+
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -153,6 +163,11 @@ def _(mo):
 
     Give the ordinary differential equation that governs the evolution of the position $(x, y)$ of the center of mass of the booster.
     """)
+    return
+
+
+@app.cell
+def _():
     return
 
 
