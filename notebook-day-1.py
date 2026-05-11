@@ -1032,6 +1032,54 @@ def _(mo):
     return
 
 
+@app.cell
+def _(M, g, l, np):
+    def booster_anim(x, y, theta, f, phi, T=5.0):
+
+        def flame_length(f_val):
+            return (l / 2) * (f_val / (M * g))
+
+        def frame(t):
+
+            x_t = x(t)
+            y_t = y(t)
+            th = theta(t)
+            f_t = f(t)
+            ph = phi(t)
+
+            # flame direction in world frame
+            angle = th + ph
+
+            dx = flame_length(f_t) * np.sin(angle)
+            dy = flame_length(f_t) * np.cos(angle)
+
+            return f"""
+            <g transform="translate({x_t},{y_t}) rotate({np.degrees(th)})">
+
+                <!-- Booster body -->
+                <rect x="-0.1" y="-{l/2}" width="0.2" height="{l}" fill="black"/>
+
+                <!-- Flame -->
+                <line x1="0" y1="-{l/2}"
+                      x2="{dx}" y2="{-l/2 + dy}"
+                      stroke="orange" stroke-width="0.08"/>
+
+                <!-- Animation loop -->
+                <animateTransform attributeName="transform"
+                                  type="rotate"
+                                  from="0"
+                                  to="360"
+                                  dur="{T}s"
+                                  repeatCount="indefinite"/>
+            </g>
+            """
+
+        # return SVG animation over time using SMIL-style updates
+        return "".join(frame(t) for t in np.linspace(0, T, 120))
+
+    return (booster_anim,)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -1047,6 +1095,54 @@ def _(mo):
 
     4. The "controlled landing" scenario (see above).
     """)
+    return
+
+
+@app.cell
+def _(booster_anim, np, redstart_solve):
+    def run_animation(y0, f_phi, T=5.0):
+
+        t_span = [0.0, T]
+
+        sol = redstart_solve(t_span, y0, f_phi)
+
+        t = np.linspace(0, T, 200)
+        states = sol(t)
+
+        x_t = lambda tt: sol(tt)[0]
+        y_t = lambda tt: sol(tt)[2]
+        theta_t = lambda tt: sol(tt)[4]
+
+        def f_t(tt):
+            return np.array([f_phi(tt, sol(tt))[0]])
+
+        def phi_t(tt):
+            return np.array([f_phi(tt, sol(tt))[1]])
+
+        return booster_anim(x_t, y_t, theta_t, f_t, phi_t, T=T)
+
+    return (run_animation,)
+
+
+@app.cell
+def _(mo, np, run_animation):
+    y0 = [0.0, 0.0, 10.0, 0.0, 0.0, 0.0]
+
+    def f_phi_1(t, y):
+        return np.array([0.0, 0.0])
+
+    mo.Html(make_world([-3, 3, -2, 4], run_animation(y0, f_phi_1)))
+    return
+
+
+@app.cell
+def _(M, g, mo, np, run_animation):
+    y0 = [0.0, 0.0, 10.0, 0.0, 0.0, 0.0]
+
+    def f_phi_2(t, y):
+        return np.array([M * g, 0.0])
+
+    mo.Html(make_world([-3, 3, -2, 4], run_animation(y0, f_phi_2)))
     return
 
 
