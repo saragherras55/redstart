@@ -701,47 +701,6 @@ def _(mo):
 
 
 @app.cell
-def _(g, np, plt, redstart_solve):
-    # coefficients
-    a = -0.032
-    b = 0.64
-
-    def f_phi(t, y):
-        f = 6*a*t + 2*b + g   # control force
-        phi = 0.0             # vertical thrust
-        return np.array([f, phi])
-
-    def controlled_landing():
-
-        t_span = [0.0, 5.0]
-
-        y0 = [0.0, 0.0, 10.0, -2.0, 0.0, 0.0]
-
-        sol = redstart_solve(t_span, y0, f_phi)
-
-        t = np.linspace(0, 5, 1000)
-
-        y = sol(t)[2]
-        vy = sol(t)[3]
-
-        plt.figure()
-
-        plt.plot(t, y, label="y(t) (actual)")
-        plt.axhline(1, color="grey", ls="--", label="target y = 1")
-
-        plt.title("Controlled Landing (physical descent)")
-        plt.xlabel("time t")
-        plt.ylabel("height y")
-        plt.grid(True)
-        plt.legend()
-
-        return plt.gcf()
-
-    controlled_landing()
-    return
-
-
-@app.cell
 def _(g, np):
     Kp = 3.0
     Kd = 2.0
@@ -760,6 +719,42 @@ def _(g, np):
 
         return np.array([f, phi])
 
+    return (f_phi,)
+
+
+@app.cell
+def _(f_phi, np, plt, redstart_solve):
+    def controlled_landing():
+
+        t_span = [0.0, 5.0]
+        y0 = [0.0, 0.0, 10.0, -2.0, 0.0, 0.0]
+
+        sol = redstart_solve(t_span, y0, f_phi)
+
+        t = np.linspace(0, 5, 1000)
+        states = sol(t)
+
+        y = states[2]
+        vy = states[3]
+
+        # compute force
+        f_vals = np.array([
+            f_phi(ti, states[:, i])[0]
+            for i, ti in enumerate(t)
+        ])
+
+        plt.figure()
+
+        plt.plot(t, y, label="y(t)")
+        plt.axhline(1, color="grey", ls="--", label="target")
+
+        plt.title("Corrected Controlled Landing")
+        plt.grid()
+        plt.legend()
+
+        return plt.gcf()
+
+    controlled_landing()
     return
 
 
@@ -836,6 +831,46 @@ def _(mo):
     ```
     """)
     return
+
+
+@app.function
+def make_world(view_box, *objects):
+    x_min, x_max, y_min, y_max = view_box
+
+    width = x_max - x_min
+    height = y_max - y_min
+
+    transform = f"translate(0,{y_min + y_max}) scale(1,-1)"
+
+    background = f'''
+    <rect x="{x_min}" y="{y_min}" width="{width}" height="{height}" fill="lightblue" opacity="0.6"/>
+    '''
+
+    ground = f'''
+    <rect x="{x_min}" y="{y_min}" width="{width}" height="{abs(y_min)}" fill="saddlebrown"/>
+    '''
+
+    landing_pad = '''
+    <rect x="-1" y="0" width="2" height="0.15"
+          fill="limegreen" stroke="darkgreen" stroke-width="0.02"/>
+    '''
+
+    extra_objects = ''.join(str(obj) for obj in objects)
+
+    return f'''
+    <svg xmlns="http://www.w3.org/2000/svg"
+         viewBox="{x_min} {y_min} {width} {height}"
+         width="400" height="300">
+
+        <g transform="{transform}">
+            {background}
+            {ground}
+            {landing_pad}
+            {extra_objects}
+        </g>
+
+    </svg>
+    '''
 
 
 @app.cell(hide_code=True)
