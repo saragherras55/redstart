@@ -71,7 +71,7 @@ def _():
     import numpy as np
     import numpy.linalg as la
 
-    return
+    return np, sci
 
 
 @app.cell(hide_code=True)
@@ -296,6 +296,41 @@ def _(mo):
     free_fall_example()
     ```
     """)
+    return
+
+
+@app.cell
+def _(J, g, l, np, sci):
+    def redstart_solve(t_span, y0, f_phi):
+
+        def dynamics(t, y):
+            x, vx, y_pos, vy, theta, omega = y
+
+            f, phi = f_phi(t, y)
+
+            ax = -f * np.sin(theta + phi)
+            ay =  f * np.cos(theta + phi) - g
+
+            alpha = -(l / J) * f * np.sin(phi)
+
+            return np.array([
+                vx,
+                ax,
+                vy,
+                ay,
+                omega,
+                alpha
+            ])
+
+        sol = sci.solve_ivp(
+            dynamics,
+            t_span,
+            y0,
+            dense_output=True
+        )
+
+        return sol.sol
+
     return
 
 
