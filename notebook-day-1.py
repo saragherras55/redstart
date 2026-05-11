@@ -190,7 +190,7 @@ def _(mo):
 @app.cell
 def _(M, l):
     J = (1/12) * M * l**2
-    return
+    return (J,)
 
 
 @app.cell(hide_code=True)
@@ -200,6 +200,15 @@ def _(mo):
 
     Give the ordinary differential equation that governs the evolution of the tilt angle $\theta$.
     """)
+    return
+
+
+@app.cell
+def _(J, l, sin):
+    def tilt_theta(f, phi):
+        ddtheta = -(l / (2 * J)) * f * sin(phi)
+        return ddtheta
+
     return
 
 
