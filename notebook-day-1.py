@@ -133,7 +133,7 @@ def _():
     g = 1      # gravity constant (m/s^2)
     M = 1      # mass of the booster (kg)
     l = 2      # total length of the booster (meters)
-    return
+    return M, g
 
 
 @app.cell(hide_code=True)
@@ -167,7 +167,13 @@ def _(mo):
 
 
 @app.cell
-def _():
+def _(M, fx, fy, g):
+    def center_of_mass_diffequat(f, theta, phi):
+        ddx = fx / M
+        ddy = fy / M - g
+
+        return ddx, ddy
+
     return
 
 
@@ -178,6 +184,11 @@ def _(mo):
 
     Compute the [moment of inertia](https://en.wikipedia.org/wiki/Moment_of_inertia) $J$ of the booster and define the corresponding Python variable `J`.
     """)
+    return
+
+
+@app.cell
+def _():
     return
 
 
