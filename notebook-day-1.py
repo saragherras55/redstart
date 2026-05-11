@@ -128,6 +128,14 @@ def _(mo):
     return
 
 
+@app.cell
+def _():
+    g = 1      # gravity constant (m/s^2)
+    M = 1      # mass of the booster (kg)
+    l = 2      # total length of the booster (meters)
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
