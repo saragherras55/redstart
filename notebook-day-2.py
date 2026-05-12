@@ -1556,7 +1556,7 @@ def _(J, M, g, l, np):
         [0, 0],
         [0, -(M*g*l)/(2*J)],
     ])
-    return
+    return A, B
 
 
 @app.cell(hide_code=True)
@@ -1614,8 +1614,40 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
- 
+    Yes,the linearized model is controllable, because:
+
+    A linear system $\dot{z} = Az + Bu$ is **controllable** if and only if the
+    Kalman controllability matrix:
+
+    $$
+    \mathcal{C} = \begin{bmatrix} B & AB & A^2B & A^3B & A^4B & A^5B \end{bmatrix} \in \mathbb{R}^{6 \times 12}
+    $$
+
+    has **full row rank** equal to the dimension of the state space., i.e. $\mathrm{rank}(\mathcal{C}) = 6$.
     """)
+    return
+
+
+@app.cell
+def _(A, B, np):
+    # Build the controllability matrix C = [B, AB, A²B, ..., A⁵B]
+    n = A.shape[0]  # state dimension = 6
+
+    C_ctrl = np.hstack([np.linalg.matrix_power(A, k) @ B for k in range(n)])
+
+    rank = np.linalg.matrix_rank(C_ctrl)
+
+    print("Controllability matrix shape:", C_ctrl.shape)
+    print(f"Rank of C : {rank}")
+    print(f"Required  : {n}")
+    print()
+    is_controllable = (rank == n)
+    print(f"System is controllable: {is_controllable}")
+    if is_controllable:
+        print()
+        print("→ The linearized model is CONTROLLABLE.")
+        print("  Any state can be reached from any initial condition.")
+        print("  In particular, we can design a stabilizing feedback controller.")
     return
 
 
