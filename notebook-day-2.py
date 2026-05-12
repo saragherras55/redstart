@@ -2997,5 +2997,55 @@ def _(mo):
     return
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    We now test both controllers on the true nonlinear model.
+
+    The controllers were designed using the linearized lateral model, but they must also work on the nonlinear booster dynamics.
+
+    For both strategies, we use the nonlinear solver `redstart_solve` with
+
+    \[
+    f = Mg
+    \]
+
+    and
+
+    \[
+    \phi(t) = -Kz(t),
+    \]
+
+    where
+
+    \[
+    z(t)=
+    \begin{pmatrix}
+    x(t)\\
+    \dot{x}(t)\\
+    \theta(t)\\
+    \dot{\theta}(t)
+    \end{pmatrix}.
+    \]
+
+    We also saturate the control input to keep
+
+    \[
+    |\phi(t)| < \frac{\pi}{2}.
+    \]
+
+    The goal is to check that:
+
+    \[
+    x(t)\to0,
+    \qquad
+    \theta(t)\to0,
+    \]
+
+    and that the booster remains physically meaningful during the simulation.
+    """)
+    return
+
+
 if __name__ == "__main__":
     app.run()
