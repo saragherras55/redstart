@@ -71,7 +71,7 @@ def _():
     import numpy as np
     import numpy.linalg as la
 
-    return np, plt, scipy
+    return np, plt, sci, scipy
 
 
 @app.cell(hide_code=True)
@@ -1797,7 +1797,7 @@ def _(J, M, g, l, np):
     print(f"Controllability matrix =\n{C_lat}\n")
     print(f"Rank: {rank_lat} / {n_lat}")
     print(f"Lateral system is controllable: {rank_lat == n_lat}")
-    return
+    return (A_lat,)
 
 
 @app.cell(hide_code=True)
@@ -1810,6 +1810,156 @@ def _(mo):
     - $\phi(t)=0$ at all times.
 
     What do you see? How do you explain it?
+    """)
+    return
+
+
+@app.cell
+def _(A_lat, np, plt, sci):
+    # Conditions initiales : [Δx, Δvx, Δθ, Δω]
+    z0 = [0.0, 0.0, np.pi / 4, 0.0]
+    t_span = [0.0, 10.0]
+    t = np.linspace(t_span[0], t_span[1], 1000)
+
+    # Pas de controle : phi = 0 donc u = 0
+    def lateral_free(t, z):
+        return A_lat @ z  # B_lat * 0 = 0
+
+    sol = sci.solve_ivp(lateral_free, t_span, z0, dense_output=True)
+    z_t = sol.sol(t)
+
+    # Extraction des variables
+    delta_x     = z_t[0]
+    delta_theta = z_t[2]
+
+    # Graphes
+    fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+
+    axes[0].plot(t, delta_x, color="steelblue")
+    axes[0].set_title(r"Position latérale $\Delta x(t)$")
+    axes[0].set_xlabel("temps $t$ (s)")
+    axes[0].set_ylabel(r"$\Delta x$ (m)")
+    axes[0].grid(True)
+
+    axes[1].plot(t, delta_theta, color="tomato")
+    axes[1].axhline(np.pi / 4, color="grey", ls="--", label=r"$\theta(0) = \pi/4$")
+    axes[1].set_title(r"Angle d'inclinaison $\Delta\theta(t)$")
+    axes[1].set_xlabel("temps $t$ (s)")
+    axes[1].set_ylabel(r"$\Delta\theta$ (rad)")
+    axes[1].grid(True)
+    axes[1].legend()
+
+    plt.tight_layout()
+    plt.show()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    We simulate the linearized lateral system with no control input:
+
+    \[
+    \phi(t)=0
+    \quad \text{for all } t.
+    \]
+
+    The equations become
+
+    \[
+    \Delta\ddot{x} = -g\,\Delta\theta,
+    \]
+
+    \[
+    \Delta\ddot{\theta} = 0,
+    \]
+
+    with initial conditions
+
+    \[
+    \Delta x(0)=0,
+    \qquad
+    \Delta\dot{x}(0)=0,
+    \]
+
+    \[
+    \Delta\theta(0)=\frac{\pi}{4},
+    \qquad
+    \Delta\dot{\theta}(0)=0.
+    \]
+
+    ---
+
+    ### Evolution of the tilt angle
+
+    Since
+
+    \[
+    \Delta\ddot{\theta}=0,
+    \]
+
+    the angular velocity remains constant. Because
+
+    \[
+    \Delta\dot{\theta}(0)=0,
+    \]
+
+    we obtain
+
+    \[
+    \Delta\dot{\theta}(t)=0,
+    \]
+
+    thus
+
+    \[
+    \Delta\theta(t)=\frac{\pi}{4}.
+    \]
+
+    Therefore, the tilt angle stays constant for all time.
+    On the graph, \(\Delta\theta(t)\) is a horizontal line equal to \(\pi/4\).
+
+    ---
+
+    ### Evolution of the lateral position
+
+    The lateral dynamics are
+
+    \[
+    \Delta\ddot{x}=-g\,\Delta\theta.
+    \]
+
+    Since \(\Delta\theta=\pi/4\) is constant, the horizontal acceleration is constant:
+
+    \[
+    \Delta\ddot{x}
+    =
+    -\frac{g\pi}{4}.
+    \]
+
+    Integrating twice with zero initial position and velocity gives
+
+    \[
+    \Delta x(t)
+    =
+    -\frac{g\pi}{8}t^2.
+    \]
+
+    Thus, the lateral position follows a parabola and diverges quadratically with time.
+
+    On the graph, \(\Delta x(t)\) continuously drifts sideways faster and faster.
+
+    ---
+
+    ### What do we see? How do we explain it?
+
+    We observe that the tilt angle remains constant while the horizontal position diverges.
+
+    This happens because there is no control input acting on the reactor angle \(\phi\). As a result, the initial tilt is never corrected.
+
+    A booster tilted at \(45^\circ\) with no correction on \(\phi\) produces a constant horizontal thrust component. Since nothing corrects the tilt angle, the booster keeps accelerating sideways indefinitely, it would eventually crash.
+
+    This shows that the open-loop system is unstable and that an active controller is required to stabilize the booster.
     """)
     return
 
