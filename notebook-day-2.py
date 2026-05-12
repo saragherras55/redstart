@@ -1614,7 +1614,7 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Yes,the linearized model is controllable, because:
+    Yes,The linearized model is controllable, because:
 
     A linear system $\dot{z} = Az + Bu$ is **controllable** if and only if the
     Kalman controllability matrix:
@@ -1662,6 +1662,141 @@ def _(mo):
 
     - Check the controllability of this new system.
     """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    For the reduced lateral system, we keep only
+
+    \[
+    z =
+    \begin{pmatrix}
+    \Delta x \\
+    \Delta v_x \\
+    \Delta\theta \\
+    \Delta\omega
+    \end{pmatrix}
+    \]
+
+    and we control only with
+
+    \[
+    u = \Delta\phi.
+    \]
+
+    Since \(f = Mg\), the linearized lateral equations are
+
+    \[
+    \Delta\ddot{x}
+    =
+    -g(\Delta\theta+\Delta\phi),
+    \]
+
+    \[
+    \Delta\ddot{\theta}
+    =
+    -\frac{Mg\ell}{2J}\Delta\phi.
+    \]
+
+    Thus,
+
+    \[
+    \begin{cases}
+    \Delta\dot{x} = \Delta v_x,\\
+    \Delta\dot{v}_x = -g\Delta\theta - g\Delta\phi,\\
+    \Delta\dot{\theta} = \Delta\omega,\\
+    \Delta\dot{\omega} = -\frac{Mg\ell}{2J}\Delta\phi.
+    \end{cases}
+    \]
+
+    Therefore,
+
+    \[
+    A =
+    \begin{pmatrix}
+    0 & 1 & 0 & 0\\
+    0 & 0 & -g & 0\\
+    0 & 0 & 0 & 1\\
+    0 & 0 & 0 & 0
+    \end{pmatrix},
+    \qquad
+    B =
+    \begin{pmatrix}
+    0\\
+    -g\\
+    0\\
+    -\frac{Mg\ell}{2J}
+    \end{pmatrix}.
+    \]
+
+    To check controllability, we use Kalman's criterion:
+
+    \[
+    \mathcal C =
+    \begin{pmatrix}
+    B & AB & A^2B & A^3B
+    \end{pmatrix}.
+    \]
+
+    The controllability matrix according to the code below is :
+    \[
+    \mathcal C =
+    \begin{pmatrix}
+    0 & -g & 0 & \frac{Mg^2\ell}{2J} \\
+    -g & 0 & \frac{Mg^2\ell}{2J} & 0 \\
+    0 & -\frac{Mg\ell}{2J} & 0 & 0 \\
+    -\frac{Mg\ell}{2J} & 0 & 0 & 0
+    \end{pmatrix}.
+    \]
+
+    The four columns are linearly independent because none of them can be written as a linear combination of the others.
+
+    Therefore,
+
+    \[
+    \operatorname{rank}(\mathcal C)=4=n.
+    \]
+
+    Hence, according to Kalman's criterion, the reduced lateral system is controllable.
+
+    ---
+
+    ### Conclusion
+
+    The lateral system is controllable: by acting only on the reactor angle \(\phi\), it is possible to steer the booster from any initial state to any target state.
+    """)
+    return
+
+
+@app.cell
+def _(J, M, g, l, np):
+    # Reduced lateral system: states = [Δx, Δvx, Δθ, Δω], input = [Δφ]
+    A_lat = np.array([
+        [0,  1,  0,  0],
+        [0,  0, -g,  0],
+        [0,  0,  0,  1],
+        [0,  0,  0,  0],
+    ])
+
+    B_lat = np.array([
+        [0],
+        [-g],
+        [0],
+        [-(M * g * l) / (2 * J)],
+    ])
+
+    # Controllability matrix: [B, AB, A²B, A³B]
+    n_lat = A_lat.shape[0]
+    C_lat = np.hstack([np.linalg.matrix_power(A_lat, k) @ B_lat for k in range(n_lat)])
+
+    rank_lat = np.linalg.matrix_rank(C_lat)
+    print(f"A_lat =\n{A_lat}\n")
+    print(f"B_lat =\n{B_lat}\n")
+    print(f"Controllability matrix =\n{C_lat}\n")
+    print(f"Rank: {rank_lat} / {n_lat}")
+    print(f"Lateral system is controllable: {rank_lat == n_lat}")
     return
 
 
