@@ -1222,6 +1222,219 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    We linearize the system around a generic equilibrium
+
+    \[
+    s^\star = (x^\star,0,y^\star,0,0,0)
+    \]
+
+    with constant equilibrium inputs
+
+    \[
+    f^\star = Mg,
+    \qquad
+    \phi^\star = 0.
+    \]
+
+    The nonlinear equations we found are
+
+    \[
+    \ddot{x}
+    =
+    -\frac{f}{M}\sin(\theta+\phi),
+    \]
+
+    \[
+    \ddot{y}
+    =
+    \frac{f}{M}\cos(\theta+\phi)-g,
+    \]
+
+    \[
+    \ddot{\theta}
+    =
+    -\frac{f\ell}{2J}\sin(\phi).
+    \]
+
+    We introduce the error variables
+
+    \[
+    \Delta x = x-x^\star,
+    \qquad
+    \Delta y = y-y^\star,
+    \qquad
+    \Delta\theta = \theta,
+    \]
+
+    and for the inputs
+
+    \[
+    \Delta f = f-Mg,
+    \qquad
+    \Delta\phi = \phi.
+    \]
+
+    Equivalently,
+
+    \[
+    x = x^\star + \Delta x,
+    \qquad
+    y = y^\star + \Delta y,
+    \qquad
+    \theta = \Delta\theta,
+    \]
+
+    and
+
+    \[
+    f = Mg + \Delta f,
+    \qquad
+    \phi = \Delta\phi.
+    \]
+
+
+    For small angles, we use the first-order approximations
+
+    \[
+    \sin(\Delta\theta+\Delta\phi)
+    \approx
+    \Delta\theta+\Delta\phi,
+    \]
+
+    \[
+    \cos(\Delta\theta+\Delta\phi)
+    \approx
+    1,
+    \]
+
+    \[
+    \sin(\Delta\phi)
+    \approx
+    \Delta\phi.
+    \]
+
+    We also neglect second-order terms such as
+
+    \[
+    \Delta f \,\Delta\theta,
+    \qquad
+    \Delta f \,\Delta\phi.
+    \]
+
+    ---
+
+    Substituting into the horizontal dynamics (found yesterday):
+
+    \[
+    \ddot{x}
+    =
+    -\frac{Mg+\Delta f}{M}
+    \sin(\Delta\theta+\Delta\phi),
+    \]
+
+    gives
+
+    \[
+    \ddot{x}
+    \approx
+    -\frac{Mg}{M}
+    (\Delta\theta+\Delta\phi),
+    \]
+
+    thus
+
+    \[
+    \Delta\ddot{x}
+    =
+    -g(\Delta\theta+\Delta\phi).
+    \]
+
+    ---
+
+    For the vertical dynamics (found yesterday):
+
+    \[
+    \ddot{y}
+    =
+    \frac{Mg+\Delta f}{M}
+    \cos(\Delta\theta+\Delta\phi)-g,
+    \]
+
+    and since
+
+    \[
+    \cos(\Delta\theta+\Delta\phi)\approx1,
+    \]
+
+    we obtain
+
+    \[
+    \ddot{y}
+    \approx
+    \frac{Mg+\Delta f}{M}-g.
+    \]
+
+    Because
+
+    \[
+    \frac{Mg}{M}=g,
+    \]
+
+    the equilibrium terms cancel:
+
+    \[
+    \Delta\ddot{y}
+    =
+    \frac{\Delta f}{M}.
+    \]
+
+    ---
+
+    Finally, for the rotational dynamics:
+
+    \[
+    \ddot{\theta}
+    =
+    -\frac{(Mg+\Delta f)\ell}{2J}
+    \sin(\Delta\phi),
+    \]
+
+    thus
+
+    \[
+    \ddot{\theta}
+    \approx
+    -\frac{Mg\ell}{2J}\Delta\phi,
+    \]
+
+    which gives
+
+    \[
+    \Delta\ddot{\theta}
+    =
+    -\frac{Mg\ell}{2J}\Delta\phi.
+    \]
+
+    ---
+
+    Therefore, the linearized model is
+
+    \[
+    \boxed{
+    \begin{aligned}
+    \Delta\ddot{x} &= -g(\Delta\theta+\Delta\phi),\\
+    \Delta\ddot{y} &= \frac{\Delta f}{M},\\
+    \Delta\ddot{\theta} &= -\frac{Mg\ell}{2J}\Delta\phi.
+    \end{aligned}
+    }
+    \]
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## 🧩 Standard Form
 
     1. What are the matrices $A$ and $B$ associated to this linear model in standard form?
