@@ -1573,80 +1573,30 @@ def _(mo):
 def _(mo):
     mo.md(r"""
     The generic equilibrium is not asymptotically stable.
-    The linearized system is written in standard form as
+    An equilibrium is asymptotically stable if and only if all eigenvalues of the matrix \(A\)
+    have strictly negative real part.
+
+    Here, the matrix \(A\) is
 
     \[
-    \dot z = Az + Bu,
-    \]
-
-    where
-
-    \[
-    z =
+    A =
     \begin{pmatrix}
-    \Delta x \\
-    \Delta v_x \\
-    \Delta y \\
-    \Delta v_y \\
-    \Delta \theta \\
-    \Delta \omega
-    \end{pmatrix},
-    \qquad
-    u =
-    \begin{pmatrix}
-    \Delta f \\
-    \Delta\phi
+    0 & 1 & 0 & 0 & 0 & 0\\
+    0 & 0 & 0 & 0 & -g & 0\\
+    0 & 0 & 0 & 1 & 0 & 0\\
+    0 & 0 & 0 & 0 & 0 & 0\\
+    0 & 0 & 0 & 0 & 0 & 1\\
+    0 & 0 & 0 & 0 & 0 & 0
     \end{pmatrix}.
     \]
 
-    The linearized equations are
+    This matrix is nilpotent, so all its eigenvalues are equal to zero:
 
     \[
-    \Delta\ddot{x} = -g(\Delta\theta+\Delta\phi),
+    \mathrm{spec}(A)=\{0,0,0,0,0,0\}.
     \]
 
-    \[
-    \Delta\ddot{y} = \frac{\Delta f}{M},
-    \]
-
-    \[
-    \Delta\ddot{\theta} = -\frac{Mg\ell}{2J}\Delta\phi.
-    \]
-
-    To study the stability of the equilibrium itself, we consider the system with no input perturbation, i.e.
-
-    \[
-    \Delta f = 0,
-    \qquad
-    \Delta\phi = 0.
-    \]
-
-    This is because asymptotic stability means that the system should naturally return to equilibrium after a small perturbation, without external correction.
-
-    The dynamics then become
-
-    \[
-    \Delta\ddot{y}=0,
-    \qquad
-    \Delta\ddot{\theta}=0.
-    \]
-
-    These equations describe free motions with no restoring force.
-
-    Their solutions are
-
-    \[
-    \Delta y(t)=at+b,
-    \qquad
-    \Delta\theta(t)=ct+d,
-    \]
-
-    where the constants depend on the initial perturbation.
-
-    In general, these quantities do not converge back to zero.
-    For example, a small initial angular velocity produces a tilt that keeps increasing linearly with time.
-
-    Therefore, the system does not naturally return to equilibrium after a perturbation, so the equilibrium is not asymptotically stable.
+    Since the eigenvalues do not have strictly negative real parts, the equilibrium is not asymptotically stable.
     """)
     return
 
@@ -1657,6 +1607,14 @@ def _(mo):
     ## 🧩 Controllability
 
     Is the linearized model controllable?
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+ 
     """)
     return
 
