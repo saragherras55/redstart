@@ -1446,6 +1446,122 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    We use the linear state z,
+    and we use error variables because we want to study the behavior of the system near an equilibrium configuration.
+
+    \[
+    z =
+    \begin{pmatrix}
+    \Delta x \\
+    \Delta v_x \\
+    \Delta y \\
+    \Delta v_y \\
+    \Delta \theta \\
+    \Delta \omega
+    \end{pmatrix}
+    \]
+
+    and the input
+
+    \[
+    u =
+    \begin{pmatrix}
+    \Delta f \\
+    \Delta \phi
+    \end{pmatrix}.
+    \]
+
+    The linearized model is written in standard form as
+
+    \[
+    \dot z = Az + Bu.
+    \]
+
+    From
+
+    \[
+    \Delta\ddot{x} = -g(\Delta\theta+\Delta\phi),
+    \]
+
+    \[
+    \Delta\ddot{y} = \frac{\Delta f}{M},
+    \]
+
+    \[
+    \Delta\ddot{\theta} = -\frac{Mg\ell}{2J}\Delta\phi,
+    \]
+
+    we get
+
+    \[
+    \begin{cases}
+    \Delta \dot{x} = \Delta v_x,\\
+    \Delta \dot{v}_x = -g\Delta\theta - g\Delta\phi,\\
+    \Delta \dot{y} = \Delta v_y,\\
+    \Delta \dot{v}_y = \frac{1}{M}\Delta f,\\
+    \Delta \dot{\theta} = \Delta \omega,\\
+    \Delta \dot{\omega} = -\frac{Mg\ell}{2J}\Delta\phi.
+    \end{cases}
+    \]
+
+    Therefore,
+
+    \[
+    A =
+    \begin{pmatrix}
+    0 & 1 & 0 & 0 & 0 & 0\\
+    0 & 0 & 0 & 0 & -g & 0\\
+    0 & 0 & 0 & 1 & 0 & 0\\
+    0 & 0 & 0 & 0 & 0 & 0\\
+    0 & 0 & 0 & 0 & 0 & 1\\
+    0 & 0 & 0 & 0 & 0 & 0
+    \end{pmatrix}
+    \]
+
+    and
+
+    \[
+    B =
+    \begin{pmatrix}
+    0 & 0\\
+    0 & -g\\
+    0 & 0\\
+    \frac{1}{M} & 0\\
+    0 & 0\\
+    0 & -\frac{Mg\ell}{2J}
+    \end{pmatrix}.
+    \]
+    """)
+    return
+
+
+@app.cell
+def _(J, M, g, l, np):
+
+
+    A = np.array([
+        [0, 1, 0, 0,  0, 0],
+        [0, 0, 0, 0, -g, 0],
+        [0, 0, 0, 1,  0, 0],
+        [0, 0, 0, 0,  0, 0],
+        [0, 0, 0, 0,  0, 1],
+        [0, 0, 0, 0,  0, 0],
+    ])
+
+    B = np.array([
+        [0, 0],
+        [0, -g],
+        [0, 0],
+        [1/M, 0],
+        [0, 0],
+        [0, -(M*g*l)/(2*J)],
+    ])
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## 🧩 Stability
 
     Is the generic equilibrium asymptotically stable?
