@@ -1087,6 +1087,130 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    An equilibrium satisfies :
+
+    \[
+    \dot{x}=\dot{y}=\dot{\theta}=0
+    \]
+
+    and
+
+    \[
+    \ddot{x}=\ddot{y}=\ddot{\theta}=0.
+    \]
+
+    Using the system equations tha we found yesterday:
+
+    \[
+    \ddot{x}=-f\sin(\theta+\phi)
+    \]
+
+    \[
+    \ddot{y}=f\cos(\theta+\phi)-g
+    \]
+
+    \[
+    \ddot{\theta}=-\frac{f}{J}\frac{\ell}{2}\sin(\phi),
+    \]
+
+    we first impose
+
+    \[
+    \ddot{\theta}=0.
+    \]
+
+    Since \(f>0\), we obtain
+
+    \[
+    \sin(\phi)=0.
+    \]
+
+    Because
+
+    \[
+    |\phi|<\frac{\pi}{2},
+    \]
+
+    the only possible solution is
+
+    \[
+    \phi=0.
+    \]
+
+    Then the horizontal equilibrium condition
+
+    \[
+    \ddot{x}=0
+    \]
+
+    gives
+
+    \[
+    \sin(\theta)=0.
+    \]
+
+    Since
+
+    \[
+    |\theta|<\frac{\pi}{2},
+    \]
+
+    the only solution is
+
+    \[
+    \theta=0.
+    \]
+
+    Finally, the vertical equilibrium condition
+
+    \[
+    \ddot{y}=0
+    \]
+
+    gives
+
+    \[
+    f\cos(0)-g=0.
+    \]
+
+    Thus,
+
+    \[
+    f=g.
+    \]
+
+    Since in our model
+
+    \[
+    g=1,
+    \]
+
+    we obtain
+
+    \[
+    f=1.
+    \]
+
+    Therefore, the equilibrium states are
+
+    \[
+    (x,0,y,0,0,0),
+    \]
+
+    where \(x\) and \(y\) are arbitrary constants, and the corresponding constant inputs are
+
+    \[
+    f=1,
+    \qquad
+    \phi=0.
+    \]
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## 🧩 Linearized Model
 
     Introduce the error variables $\Delta x$, $\Delta y$, $\Delta \theta$, and $\Delta f$ and $\Delta \phi$ of the state and input values with respect to the generic equilibrium configuration.
