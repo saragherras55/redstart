@@ -2681,6 +2681,315 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    ## Choice of the design parameters
+
+    For the optimal controller, the design parameters are the matrices
+
+    \[
+    Q
+    \quad \text{and} \quad
+    R.
+    \]
+
+    The controller minimizes the quadratic cost function
+
+    \[
+    J
+    =
+    \int_0^{+\infty}
+    \left(
+    z(t)^TQz(t)
+    +
+    u(t)^TRu(t)
+    \right)dt,
+    \]
+
+    where
+
+    \[
+    z =
+    \begin{pmatrix}
+    \Delta x \\
+    \Delta\dot{x} \\
+    \Delta\theta \\
+    \Delta\dot{\theta}
+    \end{pmatrix},
+    \qquad
+    u=\Delta\phi.
+    \]
+
+    The matrix \(Q\) penalizes the state errors, while \(R\) penalizes the control effort.
+
+    ---
+
+    ### Choice of \(Q\)
+
+    We choose
+
+    \[
+    Q =
+    \operatorname{diag}(5,\ 1,\ 20,\ 2).
+    \]
+
+    The largest weight is placed on
+
+    \[
+    \Delta\theta,
+    \]
+
+    because stabilizing the tilt angle is the most important objective.
+    A tilted booster quickly becomes unstable, so we strongly penalize angular deviations.
+
+    We also penalize
+
+    \[
+    \Delta x,
+    \]
+
+    because unlike the manually tuned controller, we now want the lateral position to converge toward zero.
+
+    Smaller weights are used for the velocities
+
+    \[
+    \Delta\dot{x}
+    \quad \text{and} \quad
+    \Delta\dot{\theta},
+    \]
+
+    because they are less critical than the position and angle themselves.
+
+    ---
+    ### Why is the largest weight placed on \(\Delta\theta\)?
+
+    We choose the largest weight:
+
+    \[
+    20
+    \]
+
+    for the tilt angle because the angle is the most critical variable.
+
+    If the booster remains tilted:
+
+    - it becomes unstable,
+    - it generates horizontal thrust,
+    - and it may crash.
+
+    Therefore, we want
+
+    \[
+    \Delta\theta(t)\to0
+    \]
+
+    as quickly as possible.
+
+    ### Choice of \(R\)
+
+    We choose
+
+    \[
+    R = 50.
+    \]
+
+    A larger value of \(R\) penalizes large control inputs.
+
+    This is important because we must satisfy the constraint
+
+    \[
+    |\Delta\phi(t)| < \frac{\pi}{2}.
+    \]
+
+    If \(R\) is too small, the controller becomes too aggressive and may generate unrealistically large reactor angles.
+
+    If \(R\) is too large, the controller becomes too weak and convergence becomes too slow.
+
+    Therefore, \(R=50\) is chosen as a compromise between:
+
+    - fast stabilization,
+    - smooth control,
+    - and respecting the input constraints.
+
+    ---
+
+    ## Iterative tuning process
+
+    The matrices \(Q\) and \(R\) are tuned iteratively by running simulations and observing:
+
+    - the convergence speed of
+      \[
+      \Delta x(t)
+      \quad \text{and} \quad
+      \Delta\theta(t),
+      \]
+
+    - the amplitude of the control input
+      \[
+      \Delta\phi(t),
+      \]
+
+    - and the stability of the closed-loop system.
+
+    Several values were tested:
+
+    - increasing the weight on \(\Delta\theta\) accelerates angular stabilization,
+    - increasing the weight on \(\Delta x\) reduces lateral drift,
+    - increasing \(R\) reduces the control effort but slows down the response.
+
+    The final choice gives:
+
+    - asymptotic stability,
+    - convergence in less than about \(20\) seconds,
+    - bounded control input,
+    - and satisfaction of the required constraints.
+
+    ---
+
+    ## Computation of the gain matrix
+
+    Once \(Q\) and \(R\) are chosen, the gain matrix \(K_{oc}\) is computed automatically by solving the continuous-time Riccati equation:
+
+    \[
+    A^TP + PA - PBR^{-1}B^TP + Q = 0.
+    \]
+
+    The optimal gain is then
+
+    \[
+    K_{oc}
+    =
+    R^{-1}B^TP.
+    \]
+
+    The closed-loop dynamics become
+
+    \[
+    \dot z
+    =
+    (A_{lat}-B_{lat}K_{oc})z.
+    \]
+
+    Finally, we verify numerically that all eigenvalues of
+
+    \[
+    A_{lat}-B_{lat}K_{oc}
+    \]
+
+    have strictly negative real parts, which confirms that the closed-loop system is asymptotically stable.
+    """)
+    return
+
+
+@app.cell
+def _(A_lat, B_lat, np, plt):
+    def optimal_control_simulation():
+
+    
+        import scipy.linalg as sla
+        from scipy.integrate import solve_ivp
+
+        # --- Design parameters for optimal control ---
+        Q_oc = np.diag([
+            5.0,    # weight on Delta x
+            1.0,    # weight on Delta x_dot
+            20.0,   # weight on Delta theta
+            2.0     # weight on Delta theta_dot
+        ])
+
+        R_oc = np.array([[50.0]])  # weight on Delta phi
+
+        # --- Riccati equation ---
+        P_oc = sla.solve_continuous_are(A_lat, B_lat, Q_oc, R_oc)
+
+        # --- Gain matrix ---
+        K_oc = np.linalg.inv(R_oc) @ B_lat.T @ P_oc
+
+        print("K_oc =", K_oc)
+
+        # --- Closed-loop matrix ---
+        A_cl_oc = A_lat - B_lat @ K_oc
+
+        eig_oc = np.linalg.eigvals(A_cl_oc)
+
+        print("Pôles obtenus :", sorted(eig_oc, key=lambda z: z.real))
+        print("Stable :", all(ev.real < 0 for ev in eig_oc))
+
+        # --- Simulation ---
+        z0_local = [0.0, 0.0, 45 / 180 * np.pi, 0.0]
+
+        t_span_local = [0.0, 40.0]
+        t_local = np.linspace(*t_span_local, 2000)
+
+        def cl_oc(t, z):
+            u = -K_oc @ z
+            return (A_lat @ z).reshape(4) + (B_lat @ u).reshape(4)
+
+        sol_local = solve_ivp(
+            cl_oc,
+            t_span_local,
+            z0_local,
+            dense_output=True
+        )
+
+        z_t_local = sol_local.sol(t_local)
+
+        delta_x_local = z_t_local[0]
+        delta_theta_local = z_t_local[2]
+        delta_phi_local = -(K_oc @ z_t_local)[0]
+
+        print(
+            f"max |Δθ| = {np.max(np.abs(delta_theta_local)):.3f} rad"
+        )
+
+        print(
+            f"max |Δφ| = {np.max(np.abs(delta_phi_local)):.3f} rad"
+        )
+
+        print(
+            "Constraint |Δθ| < π/2:",
+            np.max(np.abs(delta_theta_local)) < np.pi / 2
+        )
+
+        print(
+            "Constraint |Δφ| < π/2:",
+            np.max(np.abs(delta_phi_local)) < np.pi / 2
+        )
+
+        # --- Graphes ---
+        fig_local, axes_local = plt.subplots(1, 3, figsize=(15, 4))
+
+        fig_local.suptitle(
+            f"Optimal Control — K_oc = {np.round(K_oc, 3)}",
+            fontsize=12
+        )
+
+        axes_local[0].plot(t_local, delta_x_local)
+        axes_local[0].axhline(0, color="grey", ls="--")
+        axes_local[0].set_title(r"$\Delta x(t)$")
+        axes_local[0].grid(True)
+
+        axes_local[1].plot(t_local, delta_theta_local)
+        axes_local[1].axhline(np.pi / 2, color="grey", ls="--")
+        axes_local[1].axhline(-np.pi / 2, color="grey", ls="--")
+        axes_local[1].set_title(r"$\Delta \theta(t)$")
+        axes_local[1].grid(True)
+
+        axes_local[2].plot(t_local, delta_phi_local)
+        axes_local[2].axhline(np.pi / 2, color="grey", ls="--")
+        axes_local[2].axhline(-np.pi / 2, color="grey", ls="--")
+        axes_local[2].set_title(r"$\Delta \phi(t)$")
+        axes_local[2].grid(True)
+
+        plt.tight_layout()
+
+        return plt.gcf()
+
+    optimal_control_simulation()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## 🧩 Validation
 
     Test the two control strategies (pole placement and optimal control) on the "true" (nonlinear) model with an animation. Check that both controllers achieve their goal; otherwise, go back to the drawing board and tweak the design parameters until they do!
