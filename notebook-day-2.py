@@ -1797,7 +1797,7 @@ def _(J, M, g, l, np):
     print(f"Controllability matrix =\n{C_lat}\n")
     print(f"Rank: {rank_lat} / {n_lat}")
     print(f"Lateral system is controllable: {rank_lat == n_lat}")
-    return (A_lat,)
+    return A_lat, B_lat
 
 
 @app.cell(hide_code=True)
@@ -2468,6 +2468,201 @@ def _(mo):
 
     Explain how you find the proper design parameters!
     """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Design parameters
+
+    The design parameters are the closed-loop poles:
+
+    \[
+    -0.5 \pm 0.5i,
+    \qquad
+    -0.3 \pm 0.3i.
+    \]
+
+    They are chosen to force the closed-loop system to have a stable and reasonably slow behavior.
+
+    For a linear system
+
+    \[
+    \dot z = A_{lat}z + B_{lat}u,
+    \]
+
+    with feedback
+
+    \[
+    u = -K_{pp}z,
+    \]
+
+    the closed-loop system becomes
+
+    \[
+    \dot z = (A_{lat}-B_{lat}K_{pp})z.
+    \]
+
+    So the behavior of the system depends on the eigenvalues of
+
+    \[
+    A_{cl}=A_{lat}-B_{lat}K_{pp}.
+    \]
+
+    ---
+
+    ### Why choose poles with negative real parts?
+
+    A pole with negative real part makes the corresponding motion decay with time.
+
+    So we choose all poles with
+
+    \[
+    \operatorname{Re}(\lambda)<0
+    \]
+
+    to obtain an asymptotically stable closed-loop system.
+
+    ---
+
+    ### Why choose complex conjugate poles?
+
+    The system is real, so complex poles must appear in conjugate pairs.
+
+    The imaginary part creates oscillations, while the real part makes these oscillations decay.
+
+    That is why we choose
+
+    \[
+    -0.5 + 0.5i
+    \quad\text{and}\quad
+    -0.5 - 0.5i,
+    \]
+
+    and similarly
+
+    \[
+    -0.3 + 0.3i
+    \quad\text{and}\quad
+    -0.3 - 0.3i.
+    \]
+
+    ---
+
+    ### How were the values chosen?
+
+    The real parts \(-0.5\) and \(-0.3\) are not too close to zero, so the system converges in a reasonable time.
+
+    They are also not too negative, which avoids a very aggressive controller and helps keep
+
+    \[
+    |\Delta\phi(t)| < \frac{\pi}{2}.
+    \]
+
+    The imaginary parts \(0.5\) and \(0.3\) give a moderate oscillatory response.
+
+    So the poles are chosen as a compromise between:
+
+    - fast convergence,
+    - limited oscillations,
+    - bounded control input,
+    - and stability.
+
+    ---
+    """)
+    return
+
+
+@app.cell
+def _(A_lat, B_lat, np, plt):
+    def pole_placement_simulation():
+
+        from scipy.signal import place_poles
+        from scipy.integrate import solve_ivp
+
+        # --- Choix des pôles ---
+        poles_pp = np.array([
+            -0.5 + 0.5j,
+            -0.5 - 0.5j,
+            -0.3 + 0.3j,
+            -0.3 - 0.3j,
+        ])
+
+        # --- Calcul de K ---
+        result = place_poles(A_lat, B_lat, poles_pp)
+        K_pp = result.gain_matrix
+
+        print("K_pp =", K_pp)
+
+        A_cl_pp = A_lat - B_lat @ K_pp
+
+        eig_pp = np.linalg.eigvals(A_cl_pp)
+
+        print("Pôles obtenus :", sorted(eig_pp, key=lambda z: z.real))
+        print("Stable :", all(ev.real < 0 for ev in eig_pp))
+
+        # --- Simulation ---
+        z0_local = [0.0, 0.0, 45/180 * np.pi, 0.0]
+
+        t_span_local = [0.0, 40.0]
+
+        t_local = np.linspace(*t_span_local, 2000)
+
+        def cl_pp(t, z):
+            u = -K_pp @ z
+            return (A_lat @ z).reshape(4) + (B_lat @ u).reshape(4)
+
+        sol_local = solve_ivp(
+            cl_pp,
+            t_span_local,
+            z0_local,
+            dense_output=True
+        )
+
+        z_t_local = sol_local.sol(t_local)
+
+        delta_x_local = z_t_local[0]
+        delta_theta_local = z_t_local[2]
+        delta_phi_local = -(K_pp @ z_t_local)[0]
+
+        print(
+            f"max |Δθ| = {np.max(np.abs(delta_theta_local)):.3f} rad"
+        )
+
+        print(
+            f"max |Δφ| = {np.max(np.abs(delta_phi_local)):.3f} rad"
+        )
+
+        # --- Graphes ---
+        fig_local, axes_local = plt.subplots(1, 3, figsize=(15, 4))
+
+        fig_local.suptitle(
+            f"Pole Placement — K_pp = {np.round(K_pp, 3)}",
+            fontsize=12
+        )
+
+        axes_local[0].plot(t_local, delta_x_local)
+        axes_local[0].set_title(r"$\Delta x(t)$")
+        axes_local[0].grid(True)
+
+        axes_local[1].plot(t_local, delta_theta_local)
+        axes_local[1].axhline(np.pi/2, color="grey", ls="--")
+        axes_local[1].axhline(-np.pi/2, color="grey", ls="--")
+        axes_local[1].set_title(r"$\Delta \theta(t)$")
+        axes_local[1].grid(True)
+
+        axes_local[2].plot(t_local, delta_phi_local)
+        axes_local[2].axhline(np.pi/2, color="grey", ls="--")
+        axes_local[2].axhline(-np.pi/2, color="grey", ls="--")
+        axes_local[2].set_title(r"$\Delta \phi(t)$")
+        axes_local[2].grid(True)
+
+        plt.tight_layout()
+
+        return plt.gcf()
+
+    pole_placement_simulation()
     return
 
 
