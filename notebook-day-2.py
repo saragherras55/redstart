@@ -71,7 +71,7 @@ def _():
     import numpy as np
     import numpy.linalg as la
 
-    return np, plt, sci, scipy
+    return la, np, plt, sci, scipy
 
 
 @app.cell(hide_code=True)
@@ -2002,6 +2002,433 @@ def _(mo):
 
     Is your final closed-loop model asymptotically stable?
     """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    The control law is
+
+    \[
+    \Delta\phi(t) = -Kz(t)
+    \]
+
+    with
+
+    \[
+    z =
+    \begin{pmatrix}
+    \Delta x \\
+    \Delta \dot{x} \\
+    \Delta\theta \\
+    \Delta\dot{\theta}
+    \end{pmatrix}
+    \]
+
+    and
+
+    \[
+    K =
+    \begin{pmatrix}
+    0 & 0 & k_3 & k_4
+    \end{pmatrix}.
+    \]
+
+    Therefore,
+
+    \[
+    \Delta\phi(t)
+    =
+    -k_3\Delta\theta(t)
+    -
+    k_4\Delta\dot{\theta}(t).
+    \]
+
+    The first two coefficients are zero because we deliberately ignore \(\Delta x\) and \(\Delta\dot{x}\).
+    For now, we only want to stabilize the tilt angle.
+
+    ---
+
+    The rotational dynamics are
+
+    \[
+    \Delta\ddot{\theta}
+    =
+    -\frac{Mg\ell}{2J}\Delta\phi.
+    \]
+
+    Substituting the control law gives
+
+    \[
+    \Delta\ddot{\theta}
+    =
+    \frac{Mg\ell}{2J}
+    \left(
+    k_3\Delta\theta
+    +
+    k_4\Delta\dot{\theta}
+    \right).
+    \]
+
+    To obtain a stable damped oscillator, the feedback must act in the opposite direction of the tilt.
+    Thus, in practice, we choose negative gains in the matrix \(K\):
+
+    \[
+    K =
+    \begin{pmatrix}
+    0 & 0 & -k_3 & -k_4
+    \end{pmatrix}.
+    \]
+
+    Then
+
+    \[
+    \Delta\phi(t)
+    =
+    k_3\Delta\theta(t)
+    +
+    k_4\Delta\dot{\theta}(t),
+    \]
+
+    and the closed-loop angular equation becomes
+
+    \[
+    \Delta\ddot{\theta}
+    +
+    \frac{Mg\ell}{2J}k_4\Delta\dot{\theta}
+    +
+    \frac{Mg\ell}{2J}k_3\Delta\theta
+    =
+    0.
+    \]
+
+    With
+
+    \[
+    M=1,\qquad g=1,\qquad \ell=2,\qquad J=\frac13,
+    \]
+
+    we have
+
+    \[
+    \frac{Mg\ell}{2J}=3.
+    \]
+
+    Hence,
+
+    \[
+    \Delta\ddot{\theta}
+    +
+    3k_4\Delta\dot{\theta}
+    +
+    3k_3\Delta\theta
+    =
+    0.
+    \]
+
+    This is a damped oscillator of the form
+
+    \[
+    \ddot{\theta}
+    +
+    2\zeta\omega_n\dot{\theta}
+    +
+    \omega_n^2\theta
+    =
+    0.
+    \]
+
+    Thus,
+
+    \[
+    \omega_n = \sqrt{3k_3},
+    \]
+
+    and
+
+    \[
+    \zeta =
+    \frac{3k_4}{2\omega_n}.
+    \]
+
+    ---
+
+
+    ## Design strategy for simulation
+
+    We now choose the gains manually in order to satisfy the specifications:
+
+    - convergence in about \(20\) seconds or less,
+    - no excessive oscillations,
+    - constraints
+      \[
+      |\Delta\theta(t)|<\frac{\pi}{2},
+      \qquad
+      |\Delta\phi(t)|<\frac{\pi}{2}.
+      \]
+
+    For a second-order system, the approximate settling time is
+
+    \[
+    T_{conv}
+    \approx
+    \frac{4}{\zeta\omega_n}.
+    \]
+
+    To obtain convergence in less than \(20\) seconds, we need
+
+    \[
+    \zeta\omega_n
+    \geq
+    \frac{4}{20}
+    =
+    0.2.
+    \]
+
+    To avoid overshoots, we choose a critically damped or over-damped response:
+
+    \[
+    \zeta \geq 1.
+    \]
+
+    We start with
+
+    \[
+    \omega_n=\sqrt{1.5}\approx1.22.
+    \]
+
+    Using
+
+    \[
+    \omega_n^2 = 3k_3,
+    \]
+
+    we obtain
+
+    \[
+    k_3
+    =
+    \frac{1.5}{3}
+    =
+    0.5.
+    \]
+
+    Then, using
+
+    \[
+    2\zeta\omega_n = 3k_4,
+    \]
+
+    with \(\zeta=1\), we get
+
+    \[
+    k_4
+    =
+    \frac{2\times1\times1.22}{3}
+    \approx0.8.
+    \]
+
+    ---
+
+    ## Iterative tuning
+
+    ### First attempt
+
+    \[
+    k_3=1.0,
+    \qquad
+    k_4=1.0.
+    \]
+
+    This produces a relatively fast response, but the damping is insufficient and oscillations appear.
+    The control input may also become too large.
+
+    ---
+
+    ### Second attempt
+
+    \[
+    k_3=0.5,
+    \qquad
+    k_4=1.0.
+    \]
+
+    The system becomes over-damped and oscillations disappear.
+    However, convergence remains a bit slow (about \(25\) seconds).
+
+    ---
+
+    ### Final attempt
+
+    \[
+    k_3=0.5,
+    \qquad
+    k_4=2.0.
+    \]
+
+    This produces a strongly damped response:
+
+    - no oscillations,
+    - convergence in less than \(20\) seconds,
+    - bounded control input,
+
+
+    Therefore, the final controller is
+
+    \[
+    \boxed{
+    K=
+    \begin{pmatrix}
+    0 & 0 & -0.5 & -2.0
+    \end{pmatrix}
+    }
+    \]
+
+    (the minus signs come from the convention
+    \(\Delta\phi=-Kz\)).
+
+    ---
+
+    ## Closed-loop stability
+
+    The closed-loop system is
+
+    \[
+    \dot z
+    =
+    A_{cl}z,
+    \]
+
+    with
+
+    \[
+    A_{cl}
+    =
+    A_{lat}-B_{lat}K.
+    \]
+
+    The closed-loop model is asymptotically stable if all eigenvalues of \(A_{cl}\) have strictly negative real parts:
+
+    \[
+    \operatorname{Re}(\lambda_i)<0
+    \qquad
+    \forall i.
+    \]
+
+    We verify this numerically in the simulation code below.
+    The final closed-loop model is not asymptotically stable.
+    """)
+    return
+
+
+@app.cell
+def _(la, np, plt, sci):
+    # Constants
+    g_lat = 1.0
+    M_lat = 1.0
+    l_lat = 2.0
+    J_lat = M_lat * l_lat**2 / 12
+
+    # Reduced lateral matrices
+    A_lat_new = np.array([
+        [0, 1,  0, 0],
+        [0, 0, -g_lat, 0],
+        [0, 0,  0, 1],
+        [0, 0,  0, 0],
+    ])
+
+    B_lat_new = np.array([
+        [0],
+        [-g_lat],
+        [0],
+        [-(M_lat * g_lat * l_lat) / (2 * J_lat)],
+    ])
+
+    # Initial condition
+    z0_lat = np.array([0.0, 0.0, 45 / 180 * np.pi, 0.0])
+
+    t_span_lat = [0.0, 25.0]
+    t_lat = np.linspace(t_span_lat[0], t_span_lat[1], 1000)
+
+    # Controller guesses
+    K_list_lat = [
+        np.array([[0.0, 0.0, -1.0, -1.0]]),
+        np.array([[0.0, 0.0, -0.5, -1.0]]),
+        np.array([[0.0, 0.0, -0.5, -2.0]]),
+    ]
+
+    labels_lat = [
+        r"$k_3=1.0,\ k_4=1.0$",
+        r"$k_3=0.5,\ k_4=1.0$",
+        r"$k_3=0.5,\ k_4=2.0$ final",
+    ]
+
+    fig_lat, axes_lat = plt.subplots(1, 3, figsize=(16, 4))
+
+    for K_lat, label_lat in zip(K_list_lat, labels_lat):
+
+        A_cl_lat = A_lat_new - B_lat_new @ K_lat
+
+        def closed_loop_lat(t_local, z_local):
+            return A_cl_lat @ z_local
+
+        sol_lat = sci.solve_ivp(
+            closed_loop_lat,
+            t_span_lat,
+            z0_lat,
+            dense_output=True
+        )
+
+        z_t_lat = sol_lat.sol(t_lat)
+
+        delta_x_lat = z_t_lat[0]
+        delta_theta_lat = z_t_lat[2]
+
+        delta_phi_lat = (-K_lat @ z_t_lat).squeeze()
+
+        axes_lat[0].plot(t_lat, delta_theta_lat, label=label_lat)
+        axes_lat[1].plot(t_lat, delta_phi_lat, label=label_lat)
+        axes_lat[2].plot(t_lat, delta_x_lat, label=label_lat)
+
+    axes_lat[0].axhline(np.pi / 2, color="grey", ls="--")
+    axes_lat[0].axhline(-np.pi / 2, color="grey", ls="--")
+    axes_lat[0].set_title(r"Tilt angle $\Delta\theta(t)$")
+    axes_lat[0].set_xlabel("time t")
+    axes_lat[0].set_ylabel(r"$\Delta\theta$")
+    axes_lat[0].grid(True)
+    axes_lat[0].legend()
+
+    axes_lat[1].axhline(np.pi / 2, color="grey", ls="--")
+    axes_lat[1].axhline(-np.pi / 2, color="grey", ls="--")
+    axes_lat[1].set_title(r"Control input $\Delta\phi(t)$")
+    axes_lat[1].set_xlabel("time t")
+    axes_lat[1].set_ylabel(r"$\Delta\phi$")
+    axes_lat[1].grid(True)
+    axes_lat[1].legend()
+
+    axes_lat[2].set_title(r"Lateral position $\Delta x(t)$")
+    axes_lat[2].set_xlabel("time t")
+    axes_lat[2].set_ylabel(r"$\Delta x$")
+    axes_lat[2].grid(True)
+    axes_lat[2].legend()
+
+    plt.tight_layout()
+    plt.show()
+
+    # Final controller
+    K_final_lat = np.array([[0.0, 0.0, -0.5, -2.0]])
+    A_cl_final_lat = A_lat_new - B_lat_new @ K_final_lat
+
+    eigvals_lat = la.eigvals(A_cl_final_lat)
+    real_parts_lat = np.real(eigvals_lat)
+    print("Final K =", K_final_lat)
+    print("Closed-loop eigenvalues =", eigvals_lat)
+    print("Real parts =", np.real(eigvals_lat))
+    if np.all(real_parts_lat < 0):
+        print("Le système est asymptotiquement stable.")
+    else:
+        print("Le système n'est pas asymptotiquement stable.")
     return
 
 
