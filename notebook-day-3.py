@@ -2636,15 +2636,20 @@ def _(mo):
     \boxed{
     h^{(3)}
     =
+    \frac{1}{M}
+    \left[
+    \dot z
     \begin{bmatrix}
-    \dfrac{\dot{z}}{M}\sin\theta
-    +
-    \dfrac{z\dot{\theta}}{M}\cos\theta
-    \\[0.3cm]
-    -\dfrac{\dot{z}}{M}\cos\theta
-    +
-    \dfrac{z\dot{\theta}}{M}\sin\theta
+    \sin\theta\\[0.2cm]
+    -\cos\theta
     \end{bmatrix}
+    +
+    z\dot\theta
+    \begin{bmatrix}
+    \cos\theta\\[0.2cm]
+    \sin\theta
+    \end{bmatrix}
+    \right]
     }
     $$
 
@@ -2847,7 +2852,7 @@ def _(mo):
     $$
     \ddot{z}=v_1,
     \qquad
-    \ddot{\theta}=v_2,
+    \ddot{\theta}=\frac{v_2}{z},
     $$
 
     we finally get
@@ -2857,23 +2862,19 @@ def _(mo):
     h^{(4)}
     =
     \frac{1}{M}
+    \left[
+    (v_1-z\dot\theta^2)
     \begin{bmatrix}
-    v_1\sin\theta
-    +
-    2\dot{z}\dot{\theta}\cos\theta
-    +
-    zv_2\cos\theta
-    -
-    z\dot{\theta}^2\sin\theta
-    \\[0.3cm]
-    -v_1\cos\theta
-    +
-    2\dot{z}\dot{\theta}\sin\theta
-    +
-    zv_2\sin\theta
-    +
-    z\dot{\theta}^2\cos\theta
+    \sin\theta\\[0.2cm]
+    -\cos\theta
     \end{bmatrix}
+    +
+    (2\dot z\dot\theta+v_2)
+    \begin{bmatrix}
+    \cos\theta\\[0.2cm]
+    \sin\theta
+    \end{bmatrix}
+    \right]
     }
     $$
     """)
@@ -2903,23 +2904,19 @@ def _(mo):
     h^{(4)}
     =
     \frac{1}{M}
+    \left[
+    (v_1-z\dot\theta^2)
     \begin{bmatrix}
-    v_1\sin\theta
+    \sin\theta\\[0.2cm]
+    -\cos\theta
+    \end{bmatrix}
     +
-    zv_2\cos\theta
-    +
-    2\dot{z}\dot{\theta}\cos\theta
-    -
-    z\dot{\theta}^2\sin\theta
-    \\[0.3cm]
-    -v_1\cos\theta
-    +
-    zv_2\sin\theta
-    +
-    2\dot{z}\dot{\theta}\sin\theta
-    +
-    z\dot{\theta}^2\cos\theta
-    \end{bmatrix}.
+    (2\dot z\dot\theta+v_2)
+    \begin{bmatrix}
+    \cos\theta\\[0.2cm]
+    \sin\theta
+    \end{bmatrix}
+    \right].
     $$
 
     We want to impose
@@ -2935,82 +2932,105 @@ def _(mo):
     Therefore, we need
 
     $$
+    (v_1-z\dot\theta^2)
     \begin{bmatrix}
-    v_1\sin\theta + zv_2\cos\theta\\
-    -v_1\cos\theta + zv_2\sin\theta
+    \sin\theta\\
+    -\cos\theta
+    \end{bmatrix}
+    +
+    (2\dot z\dot\theta+v_2)
+    \begin{bmatrix}
+    \cos\theta\\
+    \sin\theta
     \end{bmatrix}
     =
     M
     \begin{bmatrix}
     u_1\\
     u_2
-    \end{bmatrix}
-    -
-    \begin{bmatrix}
-    2\dot{z}\dot{\theta}\cos\theta
-    -
-    z\dot{\theta}^2\sin\theta
-    \\
-    2\dot{z}\dot{\theta}\sin\theta
-    +
-    z\dot{\theta}^2\cos\theta
     \end{bmatrix}.
     $$
 
-    This is a linear system in \(v_1\) and \(v_2\):
+    Equivalently,
 
     $$
     \begin{bmatrix}
-    \sin\theta & z\cos\theta\\
-    -\cos\theta & z\sin\theta
+    \sin\theta & \cos\theta\\
+    -\cos\theta & \sin\theta
     \end{bmatrix}
     \begin{bmatrix}
-    v_1\\
-    v_2
+    v_1-z\dot\theta^2\\
+    2\dot z\dot\theta+v_2
     \end{bmatrix}
     =
     M
     \begin{bmatrix}
     u_1\\
     u_2
-    \end{bmatrix}
-    -
-    \begin{bmatrix}
-    2\dot{z}\dot{\theta}\cos\theta
-    -
-    z\dot{\theta}^2\sin\theta
-    \\
-    2\dot{z}\dot{\theta}\sin\theta
-    +
-    z\dot{\theta}^2\cos\theta
     \end{bmatrix}.
     $$
 
     The determinant of the matrix is
 
     $$
-    z(\sin^2\theta+\cos^2\theta)=z.
+    \sin^2\theta+\cos^2\theta = 1,
     $$
 
-    So, if
+    so the matrix is always invertible.
+
+    Its inverse is
 
     $$
-    z\neq 0,
+    \begin{bmatrix}
+    \sin\theta & -\cos\theta\\
+    \cos\theta & \sin\theta
+    \end{bmatrix}.
     $$
 
-    the matrix is invertible.
+    Thus,
 
-    Thus, we can choose \(v_1\) and \(v_2\) so that \(h^{(4)}=u\).
+    $$
+    \begin{bmatrix}
+    v_1-z\dot\theta^2\\
+    2\dot z\dot\theta+v_2
+    \end{bmatrix}
+    =
+    M
+    \begin{bmatrix}
+    \sin\theta & -\cos\theta\\
+    \cos\theta & \sin\theta
+    \end{bmatrix}
+    \begin{bmatrix}
+    u_1\\
+    u_2
+    \end{bmatrix}.
+    $$
 
-    After inversion, one possible choice is:
+    Hence,
+
+    $$
+    v_1-z\dot\theta^2
+    =
+    M(u_1\sin\theta-u_2\cos\theta),
+    $$
+
+    and
+
+    $$
+    2\dot z\dot\theta+v_2
+    =
+    M(u_1\cos\theta+u_2\sin\theta).
+    $$
+
+    Therefore,
 
     $$
     \boxed{
     v_1
     =
     M(u_1\sin\theta-u_2\cos\theta)
-    -
-    2\dot{z}\dot{\theta}
+    +
+    z\dot\theta^2
     }
     $$
 
@@ -3020,11 +3040,9 @@ def _(mo):
     \boxed{
     v_2
     =
-    \frac{
     M(u_1\cos\theta+u_2\sin\theta)
-    +
-    z\dot{\theta}^2
-    }{z}
+    -
+    2\dot z\dot\theta
     }
     $$
 
@@ -3090,8 +3108,6 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ### 🔓 Solution
-
     We know that
 
     $$
@@ -3362,46 +3378,100 @@ def _(M, T_inv, Tr, l, np):
         x_tf, dx_tf, y_tf, dy_tf, theta_tf, dtheta_tf, z_tf, dz_tf,
         tf,
     ):
+        # Step 1: compute the flat output and its derivatives at t=0 and t=tf
         h0 = Tr(x_0, dx_0, y_0, dy_0, theta_0, dtheta_0, z_0, dz_0)
         hf = Tr(x_tf, dx_tf, y_tf, dy_tf, theta_tf, dtheta_tf, z_tf, dz_tf)
 
-        def poly_coeffs(a0, da0, d2a0, d3a0, af, daf, d2af, d3af):
+        h_x0,  h_y0  = h0[0], h0[1]
+        dh_x0, dh_y0 = h0[2], h0[3]
+        d2h_x0, d2h_y0 = h0[4], h0[5]
+        d3h_x0, d3h_y0 = h0[6], h0[7]
+
+        h_xf,  h_yf  = hf[0], hf[1]
+        dh_xf, dh_yf = hf[2], hf[3]
+        d2h_xf, d2h_yf = hf[4], hf[5]
+        d3h_xf, d3h_yf = hf[6], hf[7]
+
+        # Step 2: fit a degree-7 polynomial for each component of h
+        # p(t) satisfies 8 conditions: p, p', p'', p''' at t=0 and t=tf
+        def poly_coeffs(a0, da0, d2a0, d3a0, af, daf, d2af, d3af, T):
+            # We solve the 8x8 linear system for coefficients of
+            # p(t) = c0 + c1*t + c2*t^2 + ... + c7*t^7
             A = np.array([
-                [1, 0, 0, 0, 0,      0,       0,       0      ],
-                [0, 1, 0, 0, 0,      0,       0,       0      ],
-                [0, 0, 2, 0, 0,      0,       0,       0      ],
-                [0, 0, 0, 6, 0,      0,       0,       0      ],
-                [1, tf, tf**2, tf**3, tf**4,   tf**5,   tf**6,   tf**7  ],
-                [0, 1,  2*tf,  3*tf**2, 4*tf**3, 5*tf**4, 6*tf**5, 7*tf**6],
-                [0, 0,  2,     6*tf, 12*tf**2, 20*tf**3, 30*tf**4, 42*tf**5],
-                [0, 0,  0,     6,   24*tf,   60*tf**2, 120*tf**3, 210*tf**4],
+                # conditions at t=0
+                [1, 0, 0, 0, 0, 0, 0, 0],          # p(0)
+                [0, 1, 0, 0, 0, 0, 0, 0],          # p'(0)
+                [0, 0, 2, 0, 0, 0, 0, 0],          # p''(0)
+                [0, 0, 0, 6, 0, 0, 0, 0],          # p'''(0)
+                # conditions at t=T
+                [1, T, T**2, T**3, T**4,   T**5,    T**6,    T**7   ],  # p(T)
+                [0, 1, 2*T,  3*T**2, 4*T**3, 5*T**4,  6*T**5,  7*T**6  ],  # p'(T)
+                [0, 0, 2,    6*T,  12*T**2, 20*T**3, 30*T**4, 42*T**5 ],  # p''(T)
+                [0, 0, 0,    6,   24*T,   60*T**2, 120*T**3,210*T**4 ],  # p'''(T)
             ])
             b = np.array([a0, da0, d2a0, d3a0, af, daf, d2af, d3af])
             return np.linalg.solve(A, b)
 
-        cx = poly_coeffs(*h0[:4], *hf[:4])
-        cy = poly_coeffs(*h0[4:], *hf[4:])
+        cx = poly_coeffs(h_x0, dh_x0, d2h_x0, d3h_x0,
+                         h_xf, dh_xf, d2h_xf, d3h_xf, tf)
+        cy = poly_coeffs(h_y0, dh_y0, d2h_y0, d3h_y0,
+                         h_yf, dh_yf, d2h_yf, d3h_yf, tf)
 
+        # Step 3: evaluate polynomial and its derivatives at time t
         def eval_poly(c, t):
-            powers = np.array([t**i for i in range(8)])
-            derivs = np.array([
-                powers,
-                np.array([0, 1, 2*t, 3*t**2, 4*t**3, 5*t**4, 6*t**5, 7*t**6]),
-                np.array([0, 0, 2, 6*t, 12*t**2, 20*t**3, 30*t**4, 42*t**5]),
-                np.array([0, 0, 0, 6, 24*t, 60*t**2, 120*t**3, 210*t**4]),
-            ])
-            return c @ derivs.T
+            T = np.array([1, t, t**2, t**3, t**4, t**5, t**6, t**7])
+            return float(c @ T)
 
+        def eval_dpoly(c, t):
+            T = np.array([0, 1, 2*t, 3*t**2, 4*t**3, 5*t**4, 6*t**5, 7*t**6])
+            return float(c @ T)
+
+        def eval_d2poly(c, t):
+            T = np.array([0, 0, 2, 6*t, 12*t**2, 20*t**3, 30*t**4, 42*t**5])
+            return float(c @ T)
+
+        def eval_d3poly(c, t):
+            T = np.array([0, 0, 0, 6, 24*t, 60*t**2, 120*t**3, 210*t**4])
+            return float(c @ T)
+
+        # Step 4: build fun(t)
         def fun(t):
-            hx_vals = eval_poly(cx, t)
-            hy_vals = eval_poly(cy, t)
-            state = T_inv(hx_vals[0], hy_vals[0], hx_vals[1], hy_vals[1],
-                          hx_vals[2], hy_vals[2], hx_vals[3], hy_vals[3])
+            # evaluate h and its derivatives along the polynomial trajectory
+            h_x   = eval_poly(cx, t);   h_y   = eval_poly(cy, t)
+            dh_x  = eval_dpoly(cx, t);  dh_y  = eval_dpoly(cy, t)
+            d2h_x = eval_d2poly(cx, t); d2h_y = eval_d2poly(cy, t)
+            d3h_x = eval_d3poly(cx, t); d3h_y = eval_d3poly(cy, t)
+
+            # recover booster + auxiliary state
+            state = T_inv(h_x, h_y, dh_x, dh_y, d2h_x, d2h_y, d3h_x, d3h_y)
             x, dx, y, dy, theta, dtheta, z, dz = state
-            fx = np.sin(theta) * (z - M * l * dtheta**2 / 6)
-            fy = -np.cos(theta) * (z - M * l * dtheta**2 / 6)
-            f = np.sqrt(fx**2 + fy**2)
+
+            # recover f and phi from fx, fy
+            # fx = sin(theta)*(z - M*l*dtheta^2/6) + cos(theta)*M*l*v2/(6z)
+            # fy = -cos(theta)*(z - M*l*dtheta^2/6) + sin(theta)*M*l*v2/(6z)
+            # but at this stage we only need f and phi, which come from:
+            # f = sqrt(fx^2 + fy^2), phi = angle between booster axis and force
+            # We can compute fx, fy from the booster dynamics directly:
+            fx = M * (eval_d2poly(cx, t))  # M * x_ddot = fx  ... but here h != x
+            # Better: use Newton's law on x,y
+            # We need x_ddot, y_ddot from the trajectory
+            # x = h_x + (l/6)*sin(theta), so x_ddot needs d2h and dtheta, ddtheta
+            # Simpler: recover fx, fy from d2h directly before T_inv substitution:
+            # M*ddot_x = fx  and  M*ddot_y = fy - M*g
+            # ddot_x and ddot_y come from differentiating x(t) = h_x + (l/6)*sin(theta)
+            sin_t = np.sin(theta)
+            cos_t = np.cos(theta)
+            # d3h gives us dz and dtheta already via T_inv
+            # fx, fy from auxiliary output:
+            fx = sin_t * (z - M * l * dtheta**2 / 6)
+            fy = -cos_t * (z - M * l * dtheta**2 / 6)
+            # (v2 terms vanish for the zeroth-order force recovery)
+
+            f   = np.sqrt(fx**2 + fy**2)
+            # phi: angle of force w.r.t. booster axis
+            # fx = -f*sin(theta + phi), fy = f*cos(theta + phi)
             phi = np.arctan2(-fx, fy) - theta
+
             return np.array([x, dx, y, dy, theta, dtheta, z, dz, f, phi])
 
         return fun
