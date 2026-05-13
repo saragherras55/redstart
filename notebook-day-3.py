@@ -3338,6 +3338,28 @@ def _(M, g, l, np):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    ##On teste pour valider notre T_inv :
+
+    On trouve que le test est validé donc notre fonction semble correcte
+    """)
+    return
+
+
+@app.cell
+def _(Tr):
+    Tr(1.0,2.0,3.0,4.0,0.1,0.2,-0.3,-0.4)
+    return
+
+
+@app.cell
+def _(T_inv, Tr):
+    T_inv(*Tr(1.0,2.0,3.0,4.0,0.1,0.2,-0.3,-0.4))
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## 🧩 Admissible Path Computation
 
     Implement a function
