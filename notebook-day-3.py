@@ -2753,6 +2753,151 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    From the previous result,
+
+    $$
+    h^{(4)}
+    =
+    \frac{1}{M}
+    \begin{bmatrix}
+    -v_1\cos\theta
+    +
+    zv_2\sin\theta
+    +
+    2\dot{z}\dot{\theta}\sin\theta
+    +
+    z\dot{\theta}^2\cos\theta
+    \\[0.3cm]
+    -v_1\sin\theta
+    -
+    zv_2\cos\theta
+    -
+    2\dot{z}\dot{\theta}\cos\theta
+    +
+    z\dot{\theta}^2\sin\theta
+    \end{bmatrix}.
+    $$
+
+    We want to impose
+
+    $$
+    h^{(4)} = u =
+    \begin{bmatrix}
+    u_1\\
+    u_2
+    \end{bmatrix}.
+    $$
+
+    Therefore, we need
+
+    $$
+    \begin{bmatrix}
+    -v_1\cos\theta + zv_2\sin\theta\\
+    -v_1\sin\theta - zv_2\cos\theta
+    \end{bmatrix}
+    =
+    M
+    \begin{bmatrix}
+    u_1\\
+    u_2
+    \end{bmatrix}
+    -
+    \begin{bmatrix}
+    2\dot{z}\dot{\theta}\sin\theta
+    +
+    z\dot{\theta}^2\cos\theta
+    \\
+    -2\dot{z}\dot{\theta}\cos\theta
+    +
+    z\dot{\theta}^2\sin\theta
+    \end{bmatrix}.
+    $$
+
+    This is a linear system in \(v_1\) and \(v_2\):
+
+    $$
+    \begin{bmatrix}
+    -\cos\theta & z\sin\theta\\
+    -\sin\theta & -z\cos\theta
+    \end{bmatrix}
+    \begin{bmatrix}
+    v_1\\
+    v_2
+    \end{bmatrix}
+    =
+    M
+    \begin{bmatrix}
+    u_1\\
+    u_2
+    \end{bmatrix}
+    -
+    \begin{bmatrix}
+    2\dot{z}\dot{\theta}\sin\theta
+    +
+    z\dot{\theta}^2\cos\theta
+    \\
+    -2\dot{z}\dot{\theta}\cos\theta
+    +
+    z\dot{\theta}^2\sin\theta
+    \end{bmatrix}.
+    $$
+
+    The determinant of the matrix is
+
+    $$
+    z(\cos^2\theta+\sin^2\theta)=z.
+    $$
+
+    So, if
+
+    $$
+    z\neq 0,
+    $$
+
+    the matrix is invertible.
+
+    Thus, we can choose \(v_1\) and \(v_2\) so that \(h^{(4)}=u\).
+
+    After inversion, one possible choice is:
+
+    $$
+    \boxed{
+    v_1
+    =
+    z\dot{\theta}^2
+    -
+    M(u_1\cos\theta+u_2\sin\theta)
+    }
+    $$
+
+    and
+
+    $$
+    \boxed{
+    v_2
+    =
+    \frac{
+    M(u_1\sin\theta-u_2\cos\theta)
+    -
+    2\dot{z}\dot{\theta}
+    }{z}
+    }
+    $$
+
+    With this new auxiliary system, whose input is \(u=(u_1,u_2)\) and output is \(v=(v_1,v_2)\), we obtain
+
+    $$
+    \boxed{
+    h^{(4)}=u.
+    }
+    $$
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## 🧩 State to Derivatives of the Output
 
     Implement a function `Tr` of `x, dx, y, dy, theta, dtheta, z, dz` that returns `h_x, h_y, dh_x, dh_y, d2h_x, d2h_y, d3h_x, d3h_y`.
