@@ -3071,7 +3071,7 @@ def _(M, g, l, np):
             d3h_x, d3h_y
         ])
 
-    return
+    return (Tr,)
 
 
 @app.cell(hide_code=True)
@@ -3085,6 +3085,238 @@ def _(mo):
     Implement the corresponding function `T_inv`.
     """)
     return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### 🔓 Solution
+
+    We know that
+
+    $$
+    \ddot h =
+    \begin{bmatrix}
+    \dfrac{z}{M}\sin\theta \\
+    -\dfrac{z}{M}\cos\theta - g
+    \end{bmatrix}.
+    $$
+
+    Therefore,
+
+    $$
+    M\ddot h_x = z\sin\theta
+    $$
+
+    and
+
+    $$
+    M(\ddot h_y + g) = -z\cos\theta.
+    $$
+
+    Hence,
+
+    $$
+    z^2 =
+    \left(M\ddot h_x\right)^2
+    +
+    \left(M(\ddot h_y+g)\right)^2.
+    $$
+
+    Since we assume \(z<0\), we uniquely get
+
+    $$
+    \boxed{
+    z =
+    -\sqrt{
+    \left(M\ddot h_x\right)^2
+    +
+    \left(M(\ddot h_y+g)\right)^2
+    }
+    }
+    $$
+
+    Then,
+
+    $$
+    \sin\theta = \frac{M\ddot h_x}{z},
+    \qquad
+    \cos\theta = -\frac{M(\ddot h_y+g)}{z}.
+    $$
+
+    Thus \(\theta\) is uniquely determined by
+
+    $$
+    \boxed{
+    \theta =
+    \operatorname{atan2}
+    \left(
+    \frac{M\ddot h_x}{z},
+    -\frac{M(\ddot h_y+g)}{z}
+    \right)
+    }
+    $$
+
+    Now, using
+
+    $$
+    h^{(3)}
+    =
+    \begin{bmatrix}
+    \dfrac{\dot z}{M}\sin\theta
+    +
+    \dfrac{z\dot\theta}{M}\cos\theta
+    \\[0.3cm]
+    -\dfrac{\dot z}{M}\cos\theta
+    +
+    \dfrac{z\dot\theta}{M}\sin\theta
+    \end{bmatrix},
+    $$
+
+    we get the linear system
+
+    $$
+    M h_x^{(3)}
+    =
+    \dot z\sin\theta
+    +
+    z\dot\theta\cos\theta
+    $$
+
+    and
+
+    $$
+    M h_y^{(3)}
+    =
+    -\dot z\cos\theta
+    +
+    z\dot\theta\sin\theta.
+    $$
+
+    Solving this system gives
+
+    $$
+    \boxed{
+    \dot z =
+    M h_x^{(3)}\sin\theta
+    -
+    M h_y^{(3)}\cos\theta
+    }
+    $$
+
+    and
+
+    $$
+    \boxed{
+    \dot\theta =
+    \frac{
+    M h_x^{(3)}\cos\theta
+    +
+    M h_y^{(3)}\sin\theta
+    }{z}
+    }
+    $$
+
+    Finally, from the definition of \(h\),
+
+    $$
+    h_x = x - \frac{\ell}{6}\sin\theta,
+    \qquad
+    h_y = y + \frac{\ell}{6}\cos\theta,
+    $$
+
+    we obtain
+
+    $$
+    \boxed{
+    x = h_x + \frac{\ell}{6}\sin\theta
+    }
+    $$
+
+    and
+
+    $$
+    \boxed{
+    y = h_y - \frac{\ell}{6}\cos\theta
+    }
+    $$
+
+    Similarly, from
+
+    $$
+    \dot h_x =
+    \dot x - \frac{\ell}{6}\cos\theta\,\dot\theta
+    $$
+
+    and
+
+    $$
+    \dot h_y =
+    \dot y - \frac{\ell}{6}\sin\theta\,\dot\theta,
+    $$
+
+    we get
+
+    $$
+    \boxed{
+    \dot x =
+    \dot h_x + \frac{\ell}{6}\cos\theta\,\dot\theta
+    }
+    $$
+
+    and
+
+    $$
+    \boxed{
+    \dot y =
+    \dot h_y + \frac{\ell}{6}\sin\theta\,\dot\theta
+    }
+    $$
+
+    Therefore, given \(h\), \(\dot h\), \(\ddot h\), and \(h^{(3)}\), we can uniquely recover
+
+    $$
+    (x,\dot x,y,\dot y,\theta,\dot\theta,z,\dot z)
+    $$
+
+    as long as \(z<0\).
+    """)
+    return
+
+
+@app.cell
+def _(M, g, l, np):
+    def T_inv(h_x, h_y, dh_x, dh_y, d2h_x, d2h_y, d3h_x, d3h_y):
+        q_x = M * d2h_x
+        q_y = M * (d2h_y + g)
+
+        z = -np.sqrt(q_x**2 + q_y**2)  # because we assume z < 0
+
+        theta = np.arctan2(-q_x, q_y)
+
+        sin_theta = np.sin(theta)
+        cos_theta = np.cos(theta)
+
+        e_x = M * d3h_x
+        e_y = M * d3h_y
+
+        dz = sin_theta * e_x - cos_theta * e_y
+        dtheta = (cos_theta * e_x + sin_theta * e_y) / z
+
+        x = h_x + (l / 6) * sin_theta
+        y = h_y - (l / 6) * cos_theta
+
+        dx = dh_x + (l / 6) * cos_theta * dtheta
+        dy = dh_y + (l / 6) * sin_theta * dtheta
+
+        return np.array([
+            x, dx,
+            y, dy,
+            theta, dtheta,
+            z, dz
+        ])
+
+    return (T_inv,)
 
 
 @app.cell(hide_code=True)
@@ -3123,6 +3355,60 @@ def _(mo):
     return
 
 
+@app.cell
+def _(M, T_inv, Tr, l, np):
+    def compute(
+        x_0, dx_0, y_0, dy_0, theta_0, dtheta_0, z_0, dz_0,
+        x_tf, dx_tf, y_tf, dy_tf, theta_tf, dtheta_tf, z_tf, dz_tf,
+        tf,
+    ):
+        h0 = Tr(x_0, dx_0, y_0, dy_0, theta_0, dtheta_0, z_0, dz_0)
+        hf = Tr(x_tf, dx_tf, y_tf, dy_tf, theta_tf, dtheta_tf, z_tf, dz_tf)
+
+        def poly_coeffs(a0, da0, d2a0, d3a0, af, daf, d2af, d3af):
+            A = np.array([
+                [1, 0, 0, 0, 0,      0,       0,       0      ],
+                [0, 1, 0, 0, 0,      0,       0,       0      ],
+                [0, 0, 2, 0, 0,      0,       0,       0      ],
+                [0, 0, 0, 6, 0,      0,       0,       0      ],
+                [1, tf, tf**2, tf**3, tf**4,   tf**5,   tf**6,   tf**7  ],
+                [0, 1,  2*tf,  3*tf**2, 4*tf**3, 5*tf**4, 6*tf**5, 7*tf**6],
+                [0, 0,  2,     6*tf, 12*tf**2, 20*tf**3, 30*tf**4, 42*tf**5],
+                [0, 0,  0,     6,   24*tf,   60*tf**2, 120*tf**3, 210*tf**4],
+            ])
+            b = np.array([a0, da0, d2a0, d3a0, af, daf, d2af, d3af])
+            return np.linalg.solve(A, b)
+
+        cx = poly_coeffs(*h0[:4], *hf[:4])
+        cy = poly_coeffs(*h0[4:], *hf[4:])
+
+        def eval_poly(c, t):
+            powers = np.array([t**i for i in range(8)])
+            derivs = np.array([
+                powers,
+                np.array([0, 1, 2*t, 3*t**2, 4*t**3, 5*t**4, 6*t**5, 7*t**6]),
+                np.array([0, 0, 2, 6*t, 12*t**2, 20*t**3, 30*t**4, 42*t**5]),
+                np.array([0, 0, 0, 6, 24*t, 60*t**2, 120*t**3, 210*t**4]),
+            ])
+            return c @ derivs.T
+
+        def fun(t):
+            hx_vals = eval_poly(cx, t)
+            hy_vals = eval_poly(cy, t)
+            state = T_inv(hx_vals[0], hy_vals[0], hx_vals[1], hy_vals[1],
+                          hx_vals[2], hy_vals[2], hx_vals[3], hy_vals[3])
+            x, dx, y, dy, theta, dtheta, z, dz = state
+            fx = np.sin(theta) * (z - M * l * dtheta**2 / 6)
+            fy = -np.cos(theta) * (z - M * l * dtheta**2 / 6)
+            f = np.sqrt(fx**2 + fy**2)
+            phi = np.arctan2(-fx, fy) - theta
+            return np.array([x, dx, y, dy, theta, dtheta, z, dz, f, phi])
+
+        return fun
+
+    return (compute,)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -3136,6 +3422,84 @@ def _(mo):
 
     Make the graph of the relevant variables as a function of time, then make an animation out of the same result. Comment and iterate if necessary!
     """)
+    return
+
+
+@app.cell
+def _(M, compute, g, l, mo, np, plt):
+    def graphical_validation():
+        tf = 10.0
+
+        fun = compute(
+            5.0, 0.0, 20.0, -1.0, -np.pi/8, 0.0, -M*g, 0.0,
+            0.0, 0.0, 2/3*l, 0.0, 0.0, 0.0, -M*g, 0.0,
+            tf,
+        )
+
+        t = np.linspace(0.0, tf, 1000)
+        values = np.array([fun(ti) for ti in t])
+
+        x = values[:, 0]
+        dx = values[:, 1]
+        y = values[:, 2]
+        dy = values[:, 3]
+        theta = values[:, 4]
+        dtheta = values[:, 5]
+        z = values[:, 6]
+        dz = values[:, 7]
+        f = values[:, 8]
+        phi = values[:, 9]
+
+        fig, axs = plt.subplots(5, 2, figsize=(12, 12), sharex=True)
+
+        axs[0, 0].plot(t, x)
+        axs[0, 0].set_ylabel(r"$x(t)$")
+        axs[0, 0].grid(True)
+
+        axs[0, 1].plot(t, dx)
+        axs[0, 1].set_ylabel(r"$\dot{x}(t)$")
+        axs[0, 1].grid(True)
+
+        axs[1, 0].plot(t, y)
+        axs[1, 0].set_ylabel(r"$y(t)$")
+        axs[1, 0].grid(True)
+
+        axs[1, 1].plot(t, dy)
+        axs[1, 1].set_ylabel(r"$\dot{y}(t)$")
+        axs[1, 1].grid(True)
+
+        axs[2, 0].plot(t, theta)
+        axs[2, 0].set_ylabel(r"$\theta(t)$")
+        axs[2, 0].grid(True)
+
+        axs[2, 1].plot(t, dtheta)
+        axs[2, 1].set_ylabel(r"$\dot{\theta}(t)$")
+        axs[2, 1].grid(True)
+
+        axs[3, 0].plot(t, z)
+        axs[3, 0].set_ylabel(r"$z(t)$")
+        axs[3, 0].grid(True)
+
+        axs[3, 1].plot(t, dz)
+        axs[3, 1].set_ylabel(r"$\dot{z}(t)$")
+        axs[3, 1].grid(True)
+
+        axs[4, 0].plot(t, f)
+        axs[4, 0].set_ylabel(r"$f(t)$")
+        axs[4, 0].set_xlabel("time")
+        axs[4, 0].grid(True)
+
+        axs[4, 1].plot(t, phi)
+        axs[4, 1].set_ylabel(r"$\phi(t)$")
+        axs[4, 1].set_xlabel("time")
+        axs[4, 1].grid(True)
+
+        plt.tight_layout()
+
+        return mo.center(fig)
+
+
+    graphical_validation()
     return
 
 
