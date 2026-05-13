@@ -2403,7 +2403,335 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
- 
+    From the previous result, when the auxiliary system is on,
+
+    $$
+    \ddot{h}
+    =
+    \begin{bmatrix}
+    -\dfrac{z}{M}\cos\theta \\
+    -\dfrac{z}{M}\sin\theta - g
+    \end{bmatrix}.
+    $$
+
+    Therefore,
+
+    $$
+    \ddot{h}_x = -\frac{z}{M}\cos\theta
+    $$
+
+    and
+
+    $$
+    \ddot{h}_y = -\frac{z}{M}\sin\theta - g.
+    $$
+
+    Differentiating once more,
+
+    $$
+    h_x^{(3)}
+    =
+    -\frac{1}{M}
+    \frac{d}{dt}
+    \left(
+    z\cos\theta
+    \right)
+    $$
+
+    so
+
+    $$
+    h_x^{(3)}
+    =
+    -\frac{1}{M}
+    \left(
+    \dot{z}\cos\theta
+    -
+    z\sin\theta\dot{\theta}
+    \right).
+    $$
+
+    Thus,
+
+    $$
+    h_x^{(3)}
+    =
+    -\frac{\dot{z}}{M}\cos\theta
+    +
+    \frac{z\dot{\theta}}{M}\sin\theta.
+    $$
+
+    Similarly,
+
+    $$
+    h_y^{(3)}
+    =
+    -\frac{1}{M}
+    \frac{d}{dt}
+    \left(
+    z\sin\theta
+    \right)
+    $$
+
+    so
+
+    $$
+    h_y^{(3)}
+    =
+    -\frac{1}{M}
+    \left(
+    \dot{z}\sin\theta
+    +
+    z\cos\theta\dot{\theta}
+    \right).
+    $$
+
+    Therefore,
+
+    $$
+    \boxed{
+    h^{(3)}
+    =
+    \begin{bmatrix}
+    -\dfrac{\dot{z}}{M}\cos\theta
+    +
+    \dfrac{z\dot{\theta}}{M}\sin\theta
+    \\[0.3cm]
+    -\dfrac{\dot{z}}{M}\sin\theta
+    -
+    \dfrac{z\dot{\theta}}{M}\cos\theta
+    \end{bmatrix}
+    }
+    $$
+
+    ---
+
+    Now we differentiate again to obtain \(h^{(4)}\).
+
+    For the first component:
+
+    $$
+    h_x^{(3)}
+    =
+    -\frac{\dot{z}}{M}\cos\theta
+    +
+    \frac{z\dot{\theta}}{M}\sin\theta.
+    $$
+
+    Hence,
+
+    $$
+    h_x^{(4)}
+    =
+    -\frac{1}{M}
+    \frac{d}{dt}
+    \left(
+    \dot{z}\cos\theta
+    \right)
+    +
+    \frac{1}{M}
+    \frac{d}{dt}
+    \left(
+    z\dot{\theta}\sin\theta
+    \right).
+    $$
+
+    Using the product rule,
+
+    $$
+    \frac{d}{dt}
+    \left(
+    \dot{z}\cos\theta
+    \right)
+    =
+    \ddot{z}\cos\theta
+    -
+    \dot{z}\sin\theta\dot{\theta},
+    $$
+
+    and
+
+    $$
+    \frac{d}{dt}
+    \left(
+    z\dot{\theta}\sin\theta
+    \right)
+    =
+    \dot{z}\dot{\theta}\sin\theta
+    +
+    z\ddot{\theta}\sin\theta
+    +
+    z\dot{\theta}^2\cos\theta.
+    $$
+
+    So,
+
+    $$
+    h_x^{(4)}
+    =
+    -\frac{1}{M}
+    \left(
+    \ddot{z}\cos\theta
+    -
+    \dot{z}\dot{\theta}\sin\theta
+    \right)
+    +
+    \frac{1}{M}
+    \left(
+    \dot{z}\dot{\theta}\sin\theta
+    +
+    z\ddot{\theta}\sin\theta
+    +
+    z\dot{\theta}^2\cos\theta
+    \right).
+    $$
+
+    Thus,
+
+    $$
+    h_x^{(4)}
+    =
+    \frac{1}{M}
+    \left(
+    -\ddot{z}\cos\theta
+    +
+    2\dot{z}\dot{\theta}\sin\theta
+    +
+    z\ddot{\theta}\sin\theta
+    +
+    z\dot{\theta}^2\cos\theta
+    \right).
+    $$
+
+    For the second component:
+
+    $$
+    h_y^{(3)}
+    =
+    -\frac{\dot{z}}{M}\sin\theta
+    -
+    \frac{z\dot{\theta}}{M}\cos\theta.
+    $$
+
+    Hence,
+
+    $$
+    h_y^{(4)}
+    =
+    -\frac{1}{M}
+    \frac{d}{dt}
+    \left(
+    \dot{z}\sin\theta
+    \right)
+    -
+    \frac{1}{M}
+    \frac{d}{dt}
+    \left(
+    z\dot{\theta}\cos\theta
+    \right).
+    $$
+
+    Using the product rule,
+
+    $$
+    \frac{d}{dt}
+    \left(
+    \dot{z}\sin\theta
+    \right)
+    =
+    \ddot{z}\sin\theta
+    +
+    \dot{z}\cos\theta\dot{\theta},
+    $$
+
+    and
+
+    $$
+    \frac{d}{dt}
+    \left(
+    z\dot{\theta}\cos\theta
+    \right)
+    =
+    \dot{z}\dot{\theta}\cos\theta
+    +
+    z\ddot{\theta}\cos\theta
+    -
+    z\dot{\theta}^2\sin\theta.
+    $$
+
+    So,
+
+    $$
+    h_y^{(4)}
+    =
+    -\frac{1}{M}
+    \left(
+    \ddot{z}\sin\theta
+    +
+    \dot{z}\dot{\theta}\cos\theta
+    \right)
+    -
+    \frac{1}{M}
+    \left(
+    \dot{z}\dot{\theta}\cos\theta
+    +
+    z\ddot{\theta}\cos\theta
+    -
+    z\dot{\theta}^2\sin\theta
+    \right).
+    $$
+
+    Thus,
+
+    $$
+    h_y^{(4)}
+    =
+    \frac{1}{M}
+    \left(
+    -\ddot{z}\sin\theta
+    -
+    2\dot{z}\dot{\theta}\cos\theta
+    -
+    z\ddot{\theta}\cos\theta
+    +
+    z\dot{\theta}^2\sin\theta
+    \right).
+    $$
+
+    Since the auxiliary system gives
+
+    $$
+    \ddot{z}=v_1,
+    \qquad
+    \ddot{\theta}=v_2,
+    $$
+
+    we finally get
+
+    $$
+    \boxed{
+    h^{(4)}
+    =
+    \frac{1}{M}
+    \begin{bmatrix}
+    -v_1\cos\theta
+    +
+    2\dot{z}\dot{\theta}\sin\theta
+    +
+    zv_2\sin\theta
+    +
+    z\dot{\theta}^2\cos\theta
+    \\[0.3cm]
+    -v_1\sin\theta
+    -
+    2\dot{z}\dot{\theta}\cos\theta
+    -
+    zv_2\cos\theta
+    +
+    z\dot{\theta}^2\sin\theta
+    \end{bmatrix}
+    }
+    $$
     """)
     return
 
