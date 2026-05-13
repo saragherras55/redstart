@@ -3047,5 +3047,175 @@ def _(mo):
     return
 
 
+@app.cell
+def _(A_lat, B_lat, M, g, np, plt, redstart_solve):
+    from scipy.signal import place_poles
+    import scipy.linalg as sla
+
+    # -----------------------------
+    # 1. Define K_pp globally
+    # -----------------------------
+
+    poles_pp = np.array([
+        -0.5 + 0.5j,
+        -0.5 - 0.5j,
+        -0.3 + 0.3j,
+        -0.3 - 0.3j,
+    ])
+
+    result_pp = place_poles(A_lat, B_lat, poles_pp)
+    K_pp = result_pp.gain_matrix
+
+    print("K_pp =", K_pp)
+
+
+    # -----------------------------
+    # 2. Define K_oc globally
+    # -----------------------------
+
+    Q_oc = np.diag([5.0, 1.0, 20.0, 2.0])
+    R_oc = np.array([[50.0]])
+
+    P_oc = sla.solve_continuous_are(A_lat, B_lat, Q_oc, R_oc)
+    K_oc = np.linalg.inv(R_oc) @ B_lat.T @ P_oc
+
+    print("K_oc =", K_oc)
+
+
+    # -----------------------------
+    # 3. Nonlinear validation
+    # -----------------------------
+
+    def validate_nonlinear_controllers():
+
+        T = 20.0
+        t_span = [0.0, T]
+
+        # Nonlinear state: [x, vx, y, vy, theta, omega]
+        y0 = [
+            0.0,
+            0.0,
+            10.0,
+            0.0,
+            45 / 180 * np.pi,
+            0.0
+        ]
+
+        def saturate_phi(phi):
+            eps = 1e-3
+            return np.clip(phi, -np.pi/2 + eps, np.pi/2 - eps)
+
+        def make_f_phi(K):
+
+            def f_phi(t, state):
+
+                x, vx, y, vy, theta, omega = state
+
+                z_lat = np.array([
+                    x,
+                    vx,
+                    theta,
+                    omega
+                ])
+
+                phi = float(-K @ z_lat)
+                phi = saturate_phi(phi)
+
+                f = M * g
+
+                return np.array([f, phi])
+
+            return f_phi
+
+        # Nonlinear simulations
+        sol_pp_nl = redstart_solve(
+            t_span,
+            y0,
+            make_f_phi(K_pp)
+        )
+
+        sol_oc_nl = redstart_solve(
+            t_span,
+            y0,
+            make_f_phi(K_oc)
+        )
+
+        t = np.linspace(t_span[0], t_span[1], 1000)
+
+        y_pp = sol_pp_nl(t)
+        y_oc = sol_oc_nl(t)
+
+        x_pp = y_pp[0]
+        theta_pp = y_pp[4]
+
+        x_oc = y_oc[0]
+        theta_oc = y_oc[4]
+
+        phi_pp = np.array([
+            make_f_phi(K_pp)(ti, sol_pp_nl(ti))[1]
+            for ti in t
+        ])
+
+        phi_oc = np.array([
+            make_f_phi(K_oc)(ti, sol_oc_nl(ti))[1]
+            for ti in t
+        ])
+
+        print("Pole placement:")
+        print("final x =", x_pp[-1])
+        print("final theta =", theta_pp[-1])
+        print("max |theta| =", np.max(np.abs(theta_pp)))
+        print("max |phi| =", np.max(np.abs(phi_pp)))
+
+        print("\nOptimal control:")
+        print("final x =", x_oc[-1])
+        print("final theta =", theta_oc[-1])
+        print("max |theta| =", np.max(np.abs(theta_oc)))
+        print("max |phi| =", np.max(np.abs(phi_oc)))
+
+        fig, axes = plt.subplots(2, 3, figsize=(15, 7))
+
+        axes[0, 0].plot(t, x_pp)
+        axes[0, 0].set_title(r"Pole placement: $x(t)$")
+        axes[0, 0].grid(True)
+
+        axes[0, 1].plot(t, theta_pp)
+        axes[0, 1].axhline(np.pi/2, color="grey", ls="--")
+        axes[0, 1].axhline(-np.pi/2, color="grey", ls="--")
+        axes[0, 1].set_title(r"Pole placement: $\theta(t)$")
+        axes[0, 1].grid(True)
+
+        axes[0, 2].plot(t, phi_pp)
+        axes[0, 2].axhline(np.pi/2, color="grey", ls="--")
+        axes[0, 2].axhline(-np.pi/2, color="grey", ls="--")
+        axes[0, 2].set_title(r"Pole placement: $\phi(t)$")
+        axes[0, 2].grid(True)
+
+        axes[1, 0].plot(t, x_oc)
+        axes[1, 0].set_title(r"Optimal control: $x(t)$")
+        axes[1, 0].grid(True)
+
+        axes[1, 1].plot(t, theta_oc)
+        axes[1, 1].axhline(np.pi/2, color="grey", ls="--")
+        axes[1, 1].axhline(-np.pi/2, color="grey", ls="--")
+        axes[1, 1].set_title(r"Optimal control: $\theta(t)$")
+        axes[1, 1].grid(True)
+
+        axes[1, 2].plot(t, phi_oc)
+        axes[1, 2].axhline(np.pi/2, color="grey", ls="--")
+        axes[1, 2].axhline(-np.pi/2, color="grey", ls="--")
+        axes[1, 2].set_title(r"Optimal control: $\phi(t)$")
+        axes[1, 2].grid(True)
+
+        plt.tight_layout()
+        plt.show()
+
+        return sol_pp_nl, sol_oc_nl
+
+
+    sol_pp_nl, sol_oc_nl = validate_nonlinear_controllers()
+    return
+
+
 if __name__ == "__main__":
     app.run()

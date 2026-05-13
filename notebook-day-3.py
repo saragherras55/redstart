@@ -2254,6 +2254,46 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    The output
+
+    $$
+    h :=
+    \begin{bmatrix}
+    x - (\ell/6)\sin\theta \\
+    y + (\ell/6)\cos\theta
+    \end{bmatrix}
+    $$
+
+    represents the position of a point attached to the booster, located at a distance $\ell/6$ above the center of mass along the booster axis. It is above the center of mass because the displacement vector
+
+    $$
+    \begin{bmatrix}
+    -\sin\theta \\
+    \cos\theta
+    \end{bmatrix}
+    $$
+
+    points in the upward direction of the booster axis.
+
+    When the booster tilts, this point $h$ tilts with it, since it is rigidly attached to the booster.
+
+
+
+             top of booster
+                  |
+               h •|
+                  |
+                  |• Center of mass (x,y)
+                  |
+                  |
+                  |
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## 🧩 First and Second-Order Derivatives
 
     Compute $\dot{h}$ as a function of $\dot{x}$, $\dot{y}$, $\theta$ and $\dot{\theta}$ (and constants) and then $\ddot{h}$ as a function of $\theta$ and $z$ (and constants) when the auxiliary system is plugged in the booster.
