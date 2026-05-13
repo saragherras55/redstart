@@ -3396,22 +3396,8 @@ def _(mo):
 @app.cell
 def _(M, T_inv, Tr, l, np):
     def compute(
-        x_0,
-        dx_0,
-        y_0,
-        dy_0,
-        theta_0,
-        dtheta_0,
-        z_0,
-        dz_0,
-        x_tf,
-        dx_tf,
-        y_tf,
-        dy_tf,
-        theta_tf,
-        dtheta_tf,
-        z_tf,
-        dz_tf,
+        x_0, dx_0, y_0, dy_0, theta_0, dtheta_0, z_0, dz_0,
+        x_tf, dx_tf, y_tf, dy_tf, theta_tf, dtheta_tf, z_tf, dz_tf,
         tf,
     ):
         h0 = Tr(x_0, dx_0, y_0, dy_0, theta_0, dtheta_0, z_0, dz_0)
@@ -3419,88 +3405,38 @@ def _(M, T_inv, Tr, l, np):
 
         def poly_coeffs(a0, da0, d2a0, d3a0, af, daf, d2af, d3af):
             A = np.array([
-                [1, 0, 0, 0, 0,       0,        0,        0],
-                [0, 1, 0, 0, 0,       0,        0,        0],
-                [0, 0, 2, 0, 0,       0,        0,        0],
-                [0, 0, 0, 6, 0,       0,        0,        0],
-                [1, tf, tf**2, tf**3, tf**4,    tf**5,    tf**6,    tf**7],
+                [1, 0, 0, 0, 0, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 0, 0],
+                [0, 0, 2, 0, 0, 0, 0, 0],
+                [0, 0, 0, 6, 0, 0, 0, 0],
+                [1, tf, tf**2, tf**3, tf**4, tf**5, tf**6, tf**7],
                 [0, 1, 2*tf, 3*tf**2, 4*tf**3, 5*tf**4, 6*tf**5, 7*tf**6],
                 [0, 0, 2, 6*tf, 12*tf**2, 20*tf**3, 30*tf**4, 42*tf**5],
                 [0, 0, 0, 6, 24*tf, 60*tf**2, 120*tf**3, 210*tf**4],
             ])
-
-            b = np.array([
-                a0, da0, d2a0, d3a0,
-                af, daf, d2af, d3af
-            ])
-
+            b = np.array([a0, da0, d2a0, d3a0, af, daf, d2af, d3af])
             return np.linalg.solve(A, b)
 
-        cx = poly_coeffs(
-            h0[0], h0[2], h0[4], h0[6],
-            hf[0], hf[2], hf[4], hf[6],
-        )
-
-        cy = poly_coeffs(
-            h0[1], h0[3], h0[5], h0[7],
-            hf[1], hf[3], hf[5], hf[7],
-        )
+        cx = poly_coeffs(h0[0], h0[2], h0[4], h0[6], hf[0], hf[2], hf[4], hf[6])
+        cy = poly_coeffs(h0[1], h0[3], h0[5], h0[7], hf[1], hf[3], hf[5], hf[7])
 
         def eval_poly(c, t):
-            a = c
-
-            value = (
-                a[0]
-                + a[1] * t
-                + a[2] * t**2
-                + a[3] * t**3
-                + a[4] * t**4
-                + a[5] * t**5
-                + a[6] * t**6
-                + a[7] * t**7
-            )
-
-            dvalue = (
-                a[1]
-                + 2 * a[2] * t
-                + 3 * a[3] * t**2
-                + 4 * a[4] * t**3
-                + 5 * a[5] * t**4
-                + 6 * a[6] * t**5
-                + 7 * a[7] * t**6
-            )
-
-            d2value = (
-                2 * a[2]
-                + 6 * a[3] * t
-                + 12 * a[4] * t**2
-                + 20 * a[5] * t**3
-                + 30 * a[6] * t**4
-                + 42 * a[7] * t**5
-            )
-
-            d3value = (
-                6 * a[3]
-                + 24 * a[4] * t
-                + 60 * a[5] * t**2
-                + 120 * a[6] * t**3
-                + 210 * a[7] * t**4
-            )
-
-            return value, dvalue, d2value, d3value
+            p = np.polynomial.polynomial.polyval(t, c)
+            dp = np.polynomial.polynomial.polyval(t, np.polynomial.polynomial.polyder(c, 1))
+            d2p = np.polynomial.polynomial.polyval(t, np.polynomial.polynomial.polyder(c, 2))
+            d3p = np.polynomial.polynomial.polyval(t, np.polynomial.polynomial.polyder(c, 3))
+            return p, dp, d2p, d3p
 
         def fun(t):
-            h_x, dh_x, d2h_x, d3h_x = eval_poly(cx, t)
-            h_y, dh_y, d2h_y, d3h_y = eval_poly(cy, t)
+            hx, dhx, d2hx, d3hx = eval_poly(cx, t)
+            hy, dhy, d2hy, d3hy = eval_poly(cy, t)
 
-            state = T_inv(
-                h_x, h_y,
-                dh_x, dh_y,
-                d2h_x, d2h_y,
-                d3h_x, d3h_y,
+            x, dx, y, dy, theta, dtheta, z, dz = T_inv(
+                hx, hy,
+                dhx, dhy,
+                d2hx, d2hy,
+                d3hx, d3hy,
             )
-
-            x, dx, y, dy, theta, dtheta, z, dz = state
 
             fx = np.sin(theta) * (z - M * l * dtheta**2 / 6)
             fy = -np.cos(theta) * (z - M * l * dtheta**2 / 6)
@@ -3508,13 +3444,7 @@ def _(M, T_inv, Tr, l, np):
             f = np.sqrt(fx**2 + fy**2)
             phi = np.arctan2(-fx, fy) - theta
 
-            return np.array([
-                x, dx,
-                y, dy,
-                theta, dtheta,
-                z, dz,
-                f, phi,
-            ])
+            return np.array([x, dx, y, dy, theta, dtheta, z, dz, f, phi])
 
         return fun
 
@@ -3534,6 +3464,83 @@ def _(mo):
 
     Make the graph of the relevant variables as a function of time, then make an animation out of the same result. Comment and iterate if necessary!
     """)
+    return
+
+
+@app.cell
+def _(M, compute, g, l, mo, np, plt):
+    def graphical_validation():
+        tf = 10.0
+
+        fun = compute(
+            5.0, 0.0, 20.0, -1.0, -np.pi / 8, 0.0, -M * g, 0.0,
+            0.0, 0.0, (2 / 3) * l, 0.0, 0.0, 0.0, -M * g, 0.0,
+            tf,
+        )
+
+        t = np.linspace(0.0, tf, 1000)
+        values = np.array([fun(ti) for ti in t])
+
+        x = values[:, 0]
+        dx = values[:, 1]
+        y = values[:, 2]
+        dy = values[:, 3]
+        theta = values[:, 4]
+        dtheta = values[:, 5]
+        z = values[:, 6]
+        dz = values[:, 7]
+        f = values[:, 8]
+        phi = values[:, 9]
+
+        fig, axs = plt.subplots(5, 2, figsize=(12, 12), sharex=True)
+
+        axs[0, 0].plot(t, x)
+        axs[0, 0].set_ylabel(r"$x(t)$")
+        axs[0, 0].grid(True)
+
+        axs[0, 1].plot(t, dx)
+        axs[0, 1].set_ylabel(r"$\dot{x}(t)$")
+        axs[0, 1].grid(True)
+
+        axs[1, 0].plot(t, y)
+        axs[1, 0].set_ylabel(r"$y(t)$")
+        axs[1, 0].grid(True)
+
+        axs[1, 1].plot(t, dy)
+        axs[1, 1].set_ylabel(r"$\dot{y}(t)$")
+        axs[1, 1].grid(True)
+
+        axs[2, 0].plot(t, theta)
+        axs[2, 0].set_ylabel(r"$\theta(t)$")
+        axs[2, 0].grid(True)
+
+        axs[2, 1].plot(t, dtheta)
+        axs[2, 1].set_ylabel(r"$\dot{\theta}(t)$")
+        axs[2, 1].grid(True)
+
+        axs[3, 0].plot(t, z)
+        axs[3, 0].set_ylabel(r"$z(t)$")
+        axs[3, 0].grid(True)
+
+        axs[3, 1].plot(t, dz)
+        axs[3, 1].set_ylabel(r"$\dot{z}(t)$")
+        axs[3, 1].grid(True)
+
+        axs[4, 0].plot(t, f)
+        axs[4, 0].set_ylabel(r"$f(t)$")
+        axs[4, 0].set_xlabel("time")
+        axs[4, 0].grid(True)
+
+        axs[4, 1].plot(t, phi)
+        axs[4, 1].set_ylabel(r"$\phi(t)$")
+        axs[4, 1].set_xlabel("time")
+        axs[4, 1].grid(True)
+
+        plt.tight_layout()
+        return mo.center(fig)
+
+
+    graphical_validation()
     return
 
 
