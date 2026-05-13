@@ -2340,12 +2340,6 @@ def _(mo):
     \end{bmatrix}.
     $$
 
-    With:
-
-    \[
-    J = \frac{ml^2}{12}
-    \]
-
     Using the booster dynamics
 
     $$
@@ -2354,276 +2348,48 @@ def _(mo):
     M\ddot{y} = f_y - Mg,
     $$
 
-    and:
+    and
 
-    \[
-    J\ddot{\theta}
-    =
-    \frac{l}{2}
-    \left(
-    \cos\theta \, f_x
-    +
-    \sin\theta \, f_y
-    \right)
-    \]
+    $$
+    \ddot{\theta} = -\frac{6}{M\ell}f_y,
+    $$
 
-    We then write:
+    we obtain
 
-    \[
-    \begin{pmatrix}
+    $$
+    \ddot{h} =
+    \begin{bmatrix}
+    f_x/M + (\ell/6)\sin\theta \,\dot{\theta}^2 + (\cos\theta/M)f_y \\
+    f_y/M - g - (\ell/6)\cos\theta \,\dot{\theta}^2 + (\sin\theta/M)f_y
+    \end{bmatrix}.
+    $$
+
+    Since the auxiliary system defines
+
+    $$
+    \begin{bmatrix}
     f_x \\
     f_y
-    \end{pmatrix}
+    \end{bmatrix}
     =
-    R\left(\theta - \frac{\pi}{2}\right)
-    \begin{pmatrix}
-    z - \dfrac{ml}{6}\dot{\theta}^2 \\
-    \dfrac{ml}{6}v_2
-    \end{pmatrix}
-    \]
+    R\left(\theta-\frac{\pi}{2}\right)
+    \begin{bmatrix}
+    z - M\ell\dot{\theta}^2/6 \\
+    M\ell v_2 /(6z)
+    \end{bmatrix},
+    $$
 
-    with:
+    the nonlinear terms cancel and we finally get
 
-    \[
-    R\left(\theta - \frac{\pi}{2}\right)
-    =
-    \begin{pmatrix}
-    \sin\theta & \cos\theta \\
-    -\cos\theta & -\sin\theta
-    \end{pmatrix}
-    \]
-
-    Therefore:
-
-    \[
-    \begin{pmatrix}
-    f_x \\
-    f_y
-    \end{pmatrix}
-    =
-    \begin{pmatrix}
-    \sin\theta & \cos\theta \\
-    -\cos\theta & -\sin\theta
-    \end{pmatrix}
-    \begin{pmatrix}
-    z - \dfrac{ml}{6}\dot{\theta}^2 \\
-    \dfrac{ml}{6}v_2
-    \end{pmatrix}
-    \]
-
-    Thus:
-
-    \[
-    f_x
-    =
-    \left(
-    z - \frac{ml}{6}\dot{\theta}^2
-    \right)\sin\theta
-    +
-    \frac{ml}{6}v_2\cos\theta
-    \]
-
-    \[
-    f_y
-    =
-    -
-    \left(
-    z - \frac{ml}{6}\dot{\theta}^2
-    \right)\cos\theta
-    -
-    \frac{ml}{6}v_2\sin\theta
-    \]
-
-    Then:
-
-    \[
-    \cos\theta\, f_x + \sin\theta\, f_y
-    \]
-
-    \[
-    =
-    \cos\theta
-    \left(
-    a\sin\theta + b\cos\theta
-    \right)
-    +
-    \sin\theta
-    \left(
-    -a\cos\theta - b\sin\theta
-    \right)
-    \]
-
-    \[
-    =
-    a\cos\theta\sin\theta
-    +
-    b\cos^2\theta
-    -
-    a\sin\theta\cos\theta
-    -
-    b\sin^2\theta
-    \]
-
-    \[
-    =
-    b(\cos^2\theta - \sin^2\theta)
-    \]
-
-    \[
-    =
-    b\cos(2\theta)
-    \]
-
-    Therefore:
-
-    \[
-    J\ddot{\theta}
-    =
-    \frac{l}{2} b \cos(2\theta)
-    \]
-
-    and:
-
-    \[
-    \ddot{\theta}
-    =
-    \frac{l}{2J} b \cos(2\theta)
-    \]
-
-    Since:
-
-    \[
-    b = \frac{ml}{6}v_2
-    \]
-
-    and:
-
-    \[
-    J = \frac{ml^2}{12}
-    \]
-
-    we obtain:
-
-    \[
-    \ddot{\theta}
-    =
-    v_2 \cos(2\theta)
-    \]
-
-    Finally:
-
-    \[
+    $$
     \boxed{
-    \ddot{\theta} = v_2 \cos(2\theta)
+    \ddot{h} =
+    \begin{bmatrix}
+    -(z/M)\cos\theta \\
+    -(z/M)\sin\theta - g
+    \end{bmatrix}
     }
-    \]
-
-    ---
-
-    We also have:
-
-    \[
-    \ddot{h}_x
-    =
-    \frac{f_x}{m}
-    -
-    \left(
-    \frac{l}{6}\ddot{\theta}
-    \right)\cos\theta
-    +
-    \frac{l}{6}\sin\theta\,\dot{\theta}^2
-    \]
-
-    Substituting:
-
-    \[
-    \ddot{h}_x
-    =
-    \left(
-    \frac{z}{m}
-    -
-    \frac{l}{6}\dot{\theta}^2
-    \right)\sin\theta
-    +
-    \frac{l}{6}v_2\cos\theta
-    -
-    \frac{l}{6}v_2\cos\theta\cos(2\theta)
-    +
-    \frac{l}{6}\sin\theta\,\dot{\theta}^2
-    \]
-
-    Hence:
-
-    \[
-    \boxed{
-    \ddot{h}_x
-    =
-    \frac{z}{m}\sin\theta
-    +
-    \frac{l}{6}v_2\cos\theta
-    \left(
-    1-\cos(2\theta)
-    \right)
-    }
-    \]
-
-    Similarly:
-
-    \[
-    \ddot{h}_y
-    =
-    -
-    \left(
-    \frac{z}{m}
-    -
-    \frac{l}{6}\dot{\theta}^2
-    \right)\cos\theta
-    -
-    \frac{l}{6}v_2\sin\theta
-    -
-    g
-    -
-    \frac{l}{6}\dot{\theta}^2\cos\theta
-    -
-    \frac{l}{6}\sin\theta\, v_2\cos(2\theta)
-    \]
-
-    After simplification:
-
-    \[
-    \boxed{
-    \ddot{h}_y
-    =
-    -\frac{z}{m}\cos\theta
-    -
-    g
-    -
-    \frac{l}{6}v_2\sin\theta
-    \left(
-    1+\cos(2\theta)
-    \right)
-    }
-    \]
-
-    Thus:
-
-    \[
-    \boxed{
-    \ddot{h}
-    =
-    \begin{pmatrix}
-    \dfrac{z}{m}\sin\theta
-    +
-    \dfrac{l}{6}v_2\cos\theta(1-\cos(2\theta))
-    \\[0.4cm]
-    -\dfrac{z}{m}\cos\theta
-    -
-    g
-    -
-    \dfrac{l}{6}v_2\sin\theta(1+\cos(2\theta))
-    \end{pmatrix}
-    }
-    \]
+    $$
     """)
     return
 
@@ -2635,6 +2401,11 @@ def _(mo):
 
     Compute the third derivative $h^{(3)}$ of $h$ as a function of $\theta$ and $z$ (and constants) and then the fourth derivative $h^{(4)}$ of $h$ with respect to time as a function of $\theta$, $\dot{\theta}$, $z$, $\dot{z}$, $v$ (and constants) when the auxiliary system is on.
     """)
+    return
+
+
+@app.cell(hide_code=True)
+def _():
     return
 
 
