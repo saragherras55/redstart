@@ -3396,105 +3396,125 @@ def _(mo):
 @app.cell
 def _(M, T_inv, Tr, l, np):
     def compute(
-        x_0, dx_0, y_0, dy_0, theta_0, dtheta_0, z_0, dz_0,
-        x_tf, dx_tf, y_tf, dy_tf, theta_tf, dtheta_tf, z_tf, dz_tf,
+        x_0,
+        dx_0,
+        y_0,
+        dy_0,
+        theta_0,
+        dtheta_0,
+        z_0,
+        dz_0,
+        x_tf,
+        dx_tf,
+        y_tf,
+        dy_tf,
+        theta_tf,
+        dtheta_tf,
+        z_tf,
+        dz_tf,
         tf,
     ):
-        # Step 1: compute the flat output and its derivatives at t=0 and t=tf
         h0 = Tr(x_0, dx_0, y_0, dy_0, theta_0, dtheta_0, z_0, dz_0)
         hf = Tr(x_tf, dx_tf, y_tf, dy_tf, theta_tf, dtheta_tf, z_tf, dz_tf)
 
-        h_x0,  h_y0  = h0[0], h0[1]
-        dh_x0, dh_y0 = h0[2], h0[3]
-        d2h_x0, d2h_y0 = h0[4], h0[5]
-        d3h_x0, d3h_y0 = h0[6], h0[7]
-
-        h_xf,  h_yf  = hf[0], hf[1]
-        dh_xf, dh_yf = hf[2], hf[3]
-        d2h_xf, d2h_yf = hf[4], hf[5]
-        d3h_xf, d3h_yf = hf[6], hf[7]
-
-        # Step 2: fit a degree-7 polynomial for each component of h
-        # p(t) satisfies 8 conditions: p, p', p'', p''' at t=0 and t=tf
-        def poly_coeffs(a0, da0, d2a0, d3a0, af, daf, d2af, d3af, T):
-            # We solve the 8x8 linear system for coefficients of
-            # p(t) = c0 + c1*t + c2*t^2 + ... + c7*t^7
+        def poly_coeffs(a0, da0, d2a0, d3a0, af, daf, d2af, d3af):
             A = np.array([
-                # conditions at t=0
-                [1, 0, 0, 0, 0, 0, 0, 0],          # p(0)
-                [0, 1, 0, 0, 0, 0, 0, 0],          # p'(0)
-                [0, 0, 2, 0, 0, 0, 0, 0],          # p''(0)
-                [0, 0, 0, 6, 0, 0, 0, 0],          # p'''(0)
-                # conditions at t=T
-                [1, T, T**2, T**3, T**4,   T**5,    T**6,    T**7   ],  # p(T)
-                [0, 1, 2*T,  3*T**2, 4*T**3, 5*T**4,  6*T**5,  7*T**6  ],  # p'(T)
-                [0, 0, 2,    6*T,  12*T**2, 20*T**3, 30*T**4, 42*T**5 ],  # p''(T)
-                [0, 0, 0,    6,   24*T,   60*T**2, 120*T**3,210*T**4 ],  # p'''(T)
+                [1, 0, 0, 0, 0,       0,        0,        0],
+                [0, 1, 0, 0, 0,       0,        0,        0],
+                [0, 0, 2, 0, 0,       0,        0,        0],
+                [0, 0, 0, 6, 0,       0,        0,        0],
+                [1, tf, tf**2, tf**3, tf**4,    tf**5,    tf**6,    tf**7],
+                [0, 1, 2*tf, 3*tf**2, 4*tf**3, 5*tf**4, 6*tf**5, 7*tf**6],
+                [0, 0, 2, 6*tf, 12*tf**2, 20*tf**3, 30*tf**4, 42*tf**5],
+                [0, 0, 0, 6, 24*tf, 60*tf**2, 120*tf**3, 210*tf**4],
             ])
-            b = np.array([a0, da0, d2a0, d3a0, af, daf, d2af, d3af])
+
+            b = np.array([
+                a0, da0, d2a0, d3a0,
+                af, daf, d2af, d3af
+            ])
+
             return np.linalg.solve(A, b)
 
-        cx = poly_coeffs(h_x0, dh_x0, d2h_x0, d3h_x0,
-                         h_xf, dh_xf, d2h_xf, d3h_xf, tf)
-        cy = poly_coeffs(h_y0, dh_y0, d2h_y0, d3h_y0,
-                         h_yf, dh_yf, d2h_yf, d3h_yf, tf)
+        cx = poly_coeffs(
+            h0[0], h0[2], h0[4], h0[6],
+            hf[0], hf[2], hf[4], hf[6],
+        )
 
-        # Step 3: evaluate polynomial and its derivatives at time t
+        cy = poly_coeffs(
+            h0[1], h0[3], h0[5], h0[7],
+            hf[1], hf[3], hf[5], hf[7],
+        )
+
         def eval_poly(c, t):
-            T = np.array([1, t, t**2, t**3, t**4, t**5, t**6, t**7])
-            return float(c @ T)
+            a = c
 
-        def eval_dpoly(c, t):
-            T = np.array([0, 1, 2*t, 3*t**2, 4*t**3, 5*t**4, 6*t**5, 7*t**6])
-            return float(c @ T)
+            value = (
+                a[0]
+                + a[1] * t
+                + a[2] * t**2
+                + a[3] * t**3
+                + a[4] * t**4
+                + a[5] * t**5
+                + a[6] * t**6
+                + a[7] * t**7
+            )
 
-        def eval_d2poly(c, t):
-            T = np.array([0, 0, 2, 6*t, 12*t**2, 20*t**3, 30*t**4, 42*t**5])
-            return float(c @ T)
+            dvalue = (
+                a[1]
+                + 2 * a[2] * t
+                + 3 * a[3] * t**2
+                + 4 * a[4] * t**3
+                + 5 * a[5] * t**4
+                + 6 * a[6] * t**5
+                + 7 * a[7] * t**6
+            )
 
-        def eval_d3poly(c, t):
-            T = np.array([0, 0, 0, 6, 24*t, 60*t**2, 120*t**3, 210*t**4])
-            return float(c @ T)
+            d2value = (
+                2 * a[2]
+                + 6 * a[3] * t
+                + 12 * a[4] * t**2
+                + 20 * a[5] * t**3
+                + 30 * a[6] * t**4
+                + 42 * a[7] * t**5
+            )
 
-        # Step 4: build fun(t)
+            d3value = (
+                6 * a[3]
+                + 24 * a[4] * t
+                + 60 * a[5] * t**2
+                + 120 * a[6] * t**3
+                + 210 * a[7] * t**4
+            )
+
+            return value, dvalue, d2value, d3value
+
         def fun(t):
-            # evaluate h and its derivatives along the polynomial trajectory
-            h_x   = eval_poly(cx, t);   h_y   = eval_poly(cy, t)
-            dh_x  = eval_dpoly(cx, t);  dh_y  = eval_dpoly(cy, t)
-            d2h_x = eval_d2poly(cx, t); d2h_y = eval_d2poly(cy, t)
-            d3h_x = eval_d3poly(cx, t); d3h_y = eval_d3poly(cy, t)
+            h_x, dh_x, d2h_x, d3h_x = eval_poly(cx, t)
+            h_y, dh_y, d2h_y, d3h_y = eval_poly(cy, t)
 
-            # recover booster + auxiliary state
-            state = T_inv(h_x, h_y, dh_x, dh_y, d2h_x, d2h_y, d3h_x, d3h_y)
+            state = T_inv(
+                h_x, h_y,
+                dh_x, dh_y,
+                d2h_x, d2h_y,
+                d3h_x, d3h_y,
+            )
+
             x, dx, y, dy, theta, dtheta, z, dz = state
 
-            # recover f and phi from fx, fy
-            # fx = sin(theta)*(z - M*l*dtheta^2/6) + cos(theta)*M*l*v2/(6z)
-            # fy = -cos(theta)*(z - M*l*dtheta^2/6) + sin(theta)*M*l*v2/(6z)
-            # but at this stage we only need f and phi, which come from:
-            # f = sqrt(fx^2 + fy^2), phi = angle between booster axis and force
-            # We can compute fx, fy from the booster dynamics directly:
-            fx = M * (eval_d2poly(cx, t))  # M * x_ddot = fx  ... but here h != x
-            # Better: use Newton's law on x,y
-            # We need x_ddot, y_ddot from the trajectory
-            # x = h_x + (l/6)*sin(theta), so x_ddot needs d2h and dtheta, ddtheta
-            # Simpler: recover fx, fy from d2h directly before T_inv substitution:
-            # M*ddot_x = fx  and  M*ddot_y = fy - M*g
-            # ddot_x and ddot_y come from differentiating x(t) = h_x + (l/6)*sin(theta)
-            sin_t = np.sin(theta)
-            cos_t = np.cos(theta)
-            # d3h gives us dz and dtheta already via T_inv
-            # fx, fy from auxiliary output:
-            fx = sin_t * (z - M * l * dtheta**2 / 6)
-            fy = -cos_t * (z - M * l * dtheta**2 / 6)
-            # (v2 terms vanish for the zeroth-order force recovery)
+            fx = np.sin(theta) * (z - M * l * dtheta**2 / 6)
+            fy = -np.cos(theta) * (z - M * l * dtheta**2 / 6)
 
-            f   = np.sqrt(fx**2 + fy**2)
-            # phi: angle of force w.r.t. booster axis
-            # fx = -f*sin(theta + phi), fy = f*cos(theta + phi)
+            f = np.sqrt(fx**2 + fy**2)
             phi = np.arctan2(-fx, fy) - theta
 
-            return np.array([x, dx, y, dy, theta, dtheta, z, dz, f, phi])
+            return np.array([
+                x, dx,
+                y, dy,
+                theta, dtheta,
+                z, dz,
+                f, phi,
+            ])
 
         return fun
 
@@ -3518,80 +3538,31 @@ def _(mo):
 
 
 @app.cell
-def _(M, compute, g, l, mo, np, plt):
-    def graphical_validation():
+def _(M, booster_anim, compute, g, l, mo, np, world):
+    def _anim():
         tf = 10.0
 
         fun = compute(
-            5.0, 0.0, 20.0, -1.0, -np.pi/8, 0.0, -M*g, 0.0,
-            0.0, 0.0, 2/3*l, 0.0, 0.0, 0.0, -M*g, 0.0,
+            5.0, 0.0, 20.0, -1.0, -np.pi / 8, 0.0, -M * g, 0.0,
+            0.0, 0.0, (2 / 3) * l, 0.0, 0.0, 0.0, -M * g, 0.0,
             tf,
         )
 
-        t = np.linspace(0.0, tf, 1000)
-        values = np.array([fun(ti) for ti in t])
+        x = lambda t: fun(t)[0]
+        y = lambda t: fun(t)[2]
+        theta = lambda t: fun(t)[4]
+        f = lambda t: fun(t)[8]
+        phi = lambda t: fun(t)[9]
 
-        x = values[:, 0]
-        dx = values[:, 1]
-        y = values[:, 2]
-        dy = values[:, 3]
-        theta = values[:, 4]
-        dtheta = values[:, 5]
-        z = values[:, 6]
-        dz = values[:, 7]
-        f = values[:, 8]
-        phi = values[:, 9]
-
-        fig, axs = plt.subplots(5, 2, figsize=(12, 12), sharex=True)
-
-        axs[0, 0].plot(t, x)
-        axs[0, 0].set_ylabel(r"$x(t)$")
-        axs[0, 0].grid(True)
-
-        axs[0, 1].plot(t, dx)
-        axs[0, 1].set_ylabel(r"$\dot{x}(t)$")
-        axs[0, 1].grid(True)
-
-        axs[1, 0].plot(t, y)
-        axs[1, 0].set_ylabel(r"$y(t)$")
-        axs[1, 0].grid(True)
-
-        axs[1, 1].plot(t, dy)
-        axs[1, 1].set_ylabel(r"$\dot{y}(t)$")
-        axs[1, 1].grid(True)
-
-        axs[2, 0].plot(t, theta)
-        axs[2, 0].set_ylabel(r"$\theta(t)$")
-        axs[2, 0].grid(True)
-
-        axs[2, 1].plot(t, dtheta)
-        axs[2, 1].set_ylabel(r"$\dot{\theta}(t)$")
-        axs[2, 1].grid(True)
-
-        axs[3, 0].plot(t, z)
-        axs[3, 0].set_ylabel(r"$z(t)$")
-        axs[3, 0].grid(True)
-
-        axs[3, 1].plot(t, dz)
-        axs[3, 1].set_ylabel(r"$\dot{z}(t)$")
-        axs[3, 1].grid(True)
-
-        axs[4, 0].plot(t, f)
-        axs[4, 0].set_ylabel(r"$f(t)$")
-        axs[4, 0].set_xlabel("time")
-        axs[4, 0].grid(True)
-
-        axs[4, 1].plot(t, phi)
-        axs[4, 1].set_ylabel(r"$\phi(t)$")
-        axs[4, 1].set_xlabel("time")
-        axs[4, 1].grid(True)
-
-        plt.tight_layout()
-
-        return mo.center(fig)
+        return mo.Html(
+            world(
+                [-6, 6, -2, 22],
+                booster_anim(x, y, theta, f, phi, T=tf),
+            )
+        ).center()
 
 
-    graphical_validation()
+    _anim()
     return
 
 
