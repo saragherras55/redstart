@@ -2251,43 +2251,39 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    The output
+@app.cell
+def _(l, np, plt):
+    def plot_geometry():
+        fig, ax = plt.subplots(figsize=(4, 6))
 
-    $$
-    h :=
-    \begin{bmatrix}
-    x - (\ell/6)\sin\theta \\
-    y + (\ell/6)\cos\theta
-    \end{bmatrix}
-    $$
+        x, y, theta = 0.0, 0.0, np.pi / 6
 
-    represents the position of a point attached to the booster, located at a distance $\ell/6$ above the center of mass along the booster axis. It is above the center of mass because the displacement vector
+        u = np.array([-np.sin(theta), np.cos(theta)])
 
-    $$
-    \begin{bmatrix}
-    -\sin\theta \\
-    \cos\theta
-    \end{bmatrix}
-    $$
+        center = np.array([x, y])
+        top = center + (l / 2) * u
+        bottom = center - (l / 2) * u
+        h = center + (l / 6) * u
 
-    points in the upward direction of the booster axis.
+        ax.plot([bottom[0], top[0]], [bottom[1], top[1]], "k-", lw=4, label="booster")
 
-    When the booster tilts, this point $h$ tilts with it, since it is rigidly attached to the booster.
+        ax.scatter(*center, color="red", s=60, label=r"center of mass $(x, y)$")
+        ax.scatter(*h, color="blue", s=60, marker="s", label=r"point $h$")
 
+        ax.annotate(
+            r"$\ell/6$", xy=h, xytext=center,
+            arrowprops=dict(arrowstyle="->", color="blue"),
+            fontsize=12, color="blue"
+        )
 
+        ax.set_aspect("equal")
+        ax.grid(True)
+        ax.legend()
+        ax.set_title(r"Geometric interpretation of point $h$")
 
-             top of booster
-                  |
-               h •|
-                  |
-                  |• Center of mass (x,y)
-                  |
-                  |
-                  |
-    """)
+        return fig
+
+    plot_geometry()
     return
 
 
@@ -2405,7 +2401,10 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _():
+def _(mo):
+    mo.md(r"""
+ 
+    """)
     return
 
 
