@@ -2344,45 +2344,189 @@ def _(mo):
     M\ddot{y} = f_y - Mg,
     $$
 
-    and
+    and the torque equation (with \(J = M\ell^2/12\))
 
     $$
-    \ddot{\theta} = -\frac{6}{M\ell}f_y,
+    J\ddot{\theta}
+    =
+    \frac{\ell}{2}
+    \left(
+    \cos\theta\, f_x + \sin\theta\, f_y
+    \right)
     $$
 
-    we obtain
+    we get
+
+    $$
+    \ddot{\theta}
+    =
+    \frac{6}{M\ell}
+    \left(
+    \cos\theta\, f_x + \sin\theta\, f_y
+    \right).
+    $$
+
+    Substituting into \(\ddot h\), we obtain
 
     $$
     \ddot{h} =
     \begin{bmatrix}
-    f_x/M + (\ell/6)\sin\theta \,\dot{\theta}^2 + (\cos\theta/M)f_y \\
-    f_y/M - g - (\ell/6)\cos\theta \,\dot{\theta}^2 + (\sin\theta/M)f_y
+    \dfrac{\sin^2\theta}{M} f_x
+    -
+    \dfrac{\cos\theta\sin\theta}{M} f_y
+    +
+    \dfrac{\ell}{6}\sin\theta\,\dot{\theta}^2
+    \\[0.4cm]
+    -\dfrac{\sin\theta\cos\theta}{M} f_x
+    +
+    \dfrac{\cos^2\theta}{M} f_y
+    -
+    g
+    -
+    \dfrac{\ell}{6}\cos\theta\,\dot{\theta}^2
     \end{bmatrix}.
     $$
 
-    Since the auxiliary system defines
+    The auxiliary system with the rotation matrix
 
     $$
-    \begin{bmatrix}
-    f_x \\
-    f_y
-    \end{bmatrix}
+    R(\alpha)
     =
-    R\left(\theta-\frac{\pi}{2}\right)
     \begin{bmatrix}
-    z - M\ell\dot{\theta}^2/6 \\
-    M\ell v_2 /(6z)
+    +\cos\alpha & -\sin\alpha \\
+    +\sin\alpha & +\cos\alpha
     \end{bmatrix},
     $$
 
-    the nonlinear terms cancel and we finally get
+    gives
+
+    $$
+    R\left(\theta-\frac{\pi}{2}\right)
+    =
+    \begin{bmatrix}
+    +\sin\theta & +\cos\theta \\
+    -\cos\theta & +\sin\theta
+    \end{bmatrix}.
+    $$
+
+    Hence,
+
+    $$
+    f_x
+    =
+    \sin\theta
+    \left(
+    z - \frac{M\ell\dot{\theta}^2}{6}
+    \right)
+    +
+    \cos\theta
+    \left(
+    \frac{M\ell v_2}{6z}
+    \right),
+    $$
+
+    and
+
+    $$
+    f_y
+    =
+    -\cos\theta
+    \left(
+    z - \frac{M\ell\dot{\theta}^2}{6}
+    \right)
+    +
+    \sin\theta
+    \left(
+    \frac{M\ell v_2}{6z}
+    \right).
+    $$
+
+    Substituting into \(\ddot h_x\):
+
+    $$
+    \ddot{h}_x
+    =
+    \frac{\sin^2\theta}{M}
+    \left[
+    \sin\theta
+    \left(
+    z-\frac{M\ell\dot\theta^2}{6}
+    \right)
+    +
+    \cos\theta
+    \frac{M\ell v_2}{6z}
+    \right]
+    $$
+
+    $$
+    \qquad
+    -
+    \frac{\cos\theta\sin\theta}{M}
+    \left[
+    -\cos\theta
+    \left(
+    z-\frac{M\ell\dot\theta^2}{6}
+    \right)
+    +
+    \sin\theta
+    \frac{M\ell v_2}{6z}
+    \right]
+    +
+    \frac{\ell}{6}\sin\theta\,\dot{\theta}^2.
+    $$
+
+    Then:
+
+    $$
+    \ddot{h}_x
+    =
+    \frac{\sin\theta}{M}
+    (\sin^2\theta+\cos^2\theta)
+    \left(
+    z-\frac{M\ell\dot\theta^2}{6}
+    \right)
+    $$
+
+    $$
+    \qquad
+    +
+    \frac{M\ell v_2}{6Mz}
+    (\sin^2\theta\cos\theta-\cos\theta\sin^2\theta)
+    +
+    \frac{\ell}{6}\sin\theta\,\dot{\theta}^2.
+    $$
+
+    The \(v_2\) terms cancel and the \(\dot\theta^2\) terms cancel, leaving
+
+    $$
+    \ddot{h}_x
+    =
+    \frac{z\sin\theta}{M}
+    -
+    \frac{\ell\dot\theta^2\sin\theta}{6}
+    +
+    \frac{\ell}{6}\sin\theta\,\dot{\theta}^2
+    =
+    \frac{z}{M}\sin\theta.
+    $$
+
+    Similarly, for the second component:
+
+    $$
+    \ddot{h}_y
+    =
+    -\frac{z}{M}\cos\theta - g.
+    $$
+
+    We finally obtain
 
     $$
     \boxed{
-    \ddot{h} =
+    \ddot{h}
+    =
     \begin{bmatrix}
-    -(z/M)\cos\theta \\
-    -(z/M)\sin\theta - g
+    +\dfrac{z}{M}\sin\theta \\[0.3cm]
+    -\dfrac{z}{M}\cos\theta - g
     \end{bmatrix}
     }
     $$
@@ -2409,27 +2553,62 @@ def _(mo):
     \ddot{h}
     =
     \begin{bmatrix}
-    -\dfrac{z}{M}\cos\theta \\
-    -\dfrac{z}{M}\sin\theta - g
+    +\dfrac{z}{M}\sin\theta \\[0.3cm]
+    -\dfrac{z}{M}\cos\theta - g
     \end{bmatrix}.
     $$
 
     Therefore,
 
     $$
-    \ddot{h}_x = -\frac{z}{M}\cos\theta
+    \ddot{h}_x = \frac{z}{M}\sin\theta
     $$
 
     and
 
     $$
-    \ddot{h}_y = -\frac{z}{M}\sin\theta - g.
+    \ddot{h}_y = -\frac{z}{M}\cos\theta - g.
     $$
 
     Differentiating once more,
 
     $$
     h_x^{(3)}
+    =
+    \frac{1}{M}
+    \frac{d}{dt}
+    \left(
+    z\sin\theta
+    \right)
+    $$
+
+    so
+
+    $$
+    h_x^{(3)}
+    =
+    \frac{1}{M}
+    \left(
+    \dot{z}\sin\theta
+    +
+    z\cos\theta\dot{\theta}
+    \right).
+    $$
+
+    Thus,
+
+    $$
+    h_x^{(3)}
+    =
+    \frac{\dot{z}}{M}\sin\theta
+    +
+    \frac{z\dot{\theta}}{M}\cos\theta.
+    $$
+
+    Similarly,
+
+    $$
+    h_y^{(3)}
     =
     -\frac{1}{M}
     \frac{d}{dt}
@@ -2441,48 +2620,13 @@ def _(mo):
     so
 
     $$
-    h_x^{(3)}
+    h_y^{(3)}
     =
     -\frac{1}{M}
     \left(
     \dot{z}\cos\theta
     -
     z\sin\theta\dot{\theta}
-    \right).
-    $$
-
-    Thus,
-
-    $$
-    h_x^{(3)}
-    =
-    -\frac{\dot{z}}{M}\cos\theta
-    +
-    \frac{z\dot{\theta}}{M}\sin\theta.
-    $$
-
-    Similarly,
-
-    $$
-    h_y^{(3)}
-    =
-    -\frac{1}{M}
-    \frac{d}{dt}
-    \left(
-    z\sin\theta
-    \right)
-    $$
-
-    so
-
-    $$
-    h_y^{(3)}
-    =
-    -\frac{1}{M}
-    \left(
-    \dot{z}\sin\theta
-    +
-    z\cos\theta\dot{\theta}
     \right).
     $$
 
@@ -2493,13 +2637,13 @@ def _(mo):
     h^{(3)}
     =
     \begin{bmatrix}
+    \dfrac{\dot{z}}{M}\sin\theta
+    +
+    \dfrac{z\dot{\theta}}{M}\cos\theta
+    \\[0.3cm]
     -\dfrac{\dot{z}}{M}\cos\theta
     +
     \dfrac{z\dot{\theta}}{M}\sin\theta
-    \\[0.3cm]
-    -\dfrac{\dot{z}}{M}\sin\theta
-    -
-    \dfrac{z\dot{\theta}}{M}\cos\theta
     \end{bmatrix}
     }
     $$
@@ -2513,6 +2657,101 @@ def _(mo):
     $$
     h_x^{(3)}
     =
+    \frac{\dot{z}}{M}\sin\theta
+    +
+    \frac{z\dot{\theta}}{M}\cos\theta.
+    $$
+
+    Hence,
+
+    $$
+    h_x^{(4)}
+    =
+    \frac{1}{M}
+    \frac{d}{dt}
+    \left(
+    \dot{z}\sin\theta
+    \right)
+    +
+    \frac{1}{M}
+    \frac{d}{dt}
+    \left(
+    z\dot{\theta}\cos\theta
+    \right).
+    $$
+
+    Using the product rule,
+
+    $$
+    \frac{d}{dt}
+    \left(
+    \dot{z}\sin\theta
+    \right)
+    =
+    \ddot{z}\sin\theta
+    +
+    \dot{z}\cos\theta\dot{\theta},
+    $$
+
+    and
+
+    $$
+    \frac{d}{dt}
+    \left(
+    z\dot{\theta}\cos\theta
+    \right)
+    =
+    \dot{z}\dot{\theta}\cos\theta
+    +
+    z\ddot{\theta}\cos\theta
+    -
+    z\dot{\theta}^2\sin\theta.
+    $$
+
+    So,
+
+    $$
+    h_x^{(4)}
+    =
+    \frac{1}{M}
+    \left(
+    \ddot{z}\sin\theta
+    +
+    \dot{z}\dot{\theta}\cos\theta
+    \right)
+    +
+    \frac{1}{M}
+    \left(
+    \dot{z}\dot{\theta}\cos\theta
+    +
+    z\ddot{\theta}\cos\theta
+    -
+    z\dot{\theta}^2\sin\theta
+    \right).
+    $$
+
+    Thus,
+
+    $$
+    h_x^{(4)}
+    =
+    \frac{1}{M}
+    \left(
+    \ddot{z}\sin\theta
+    +
+    2\dot{z}\dot{\theta}\cos\theta
+    +
+    z\ddot{\theta}\cos\theta
+    -
+    z\dot{\theta}^2\sin\theta
+    \right).
+    $$
+
+    For the second component:
+
+    $$
+    h_y^{(3)}
+    =
     -\frac{\dot{z}}{M}\cos\theta
     +
     \frac{z\dot{\theta}}{M}\sin\theta.
@@ -2521,7 +2760,7 @@ def _(mo):
     Hence,
 
     $$
-    h_x^{(4)}
+    h_y^{(4)}
     =
     -\frac{1}{M}
     \frac{d}{dt}
@@ -2567,7 +2806,7 @@ def _(mo):
     So,
 
     $$
-    h_x^{(4)}
+    h_y^{(4)}
     =
     -\frac{1}{M}
     \left(
@@ -2589,7 +2828,7 @@ def _(mo):
     Thus,
 
     $$
-    h_x^{(4)}
+    h_y^{(4)}
     =
     \frac{1}{M}
     \left(
@@ -2600,101 +2839,6 @@ def _(mo):
     z\ddot{\theta}\sin\theta
     +
     z\dot{\theta}^2\cos\theta
-    \right).
-    $$
-
-    For the second component:
-
-    $$
-    h_y^{(3)}
-    =
-    -\frac{\dot{z}}{M}\sin\theta
-    -
-    \frac{z\dot{\theta}}{M}\cos\theta.
-    $$
-
-    Hence,
-
-    $$
-    h_y^{(4)}
-    =
-    -\frac{1}{M}
-    \frac{d}{dt}
-    \left(
-    \dot{z}\sin\theta
-    \right)
-    -
-    \frac{1}{M}
-    \frac{d}{dt}
-    \left(
-    z\dot{\theta}\cos\theta
-    \right).
-    $$
-
-    Using the product rule,
-
-    $$
-    \frac{d}{dt}
-    \left(
-    \dot{z}\sin\theta
-    \right)
-    =
-    \ddot{z}\sin\theta
-    +
-    \dot{z}\cos\theta\dot{\theta},
-    $$
-
-    and
-
-    $$
-    \frac{d}{dt}
-    \left(
-    z\dot{\theta}\cos\theta
-    \right)
-    =
-    \dot{z}\dot{\theta}\cos\theta
-    +
-    z\ddot{\theta}\cos\theta
-    -
-    z\dot{\theta}^2\sin\theta.
-    $$
-
-    So,
-
-    $$
-    h_y^{(4)}
-    =
-    -\frac{1}{M}
-    \left(
-    \ddot{z}\sin\theta
-    +
-    \dot{z}\dot{\theta}\cos\theta
-    \right)
-    -
-    \frac{1}{M}
-    \left(
-    \dot{z}\dot{\theta}\cos\theta
-    +
-    z\ddot{\theta}\cos\theta
-    -
-    z\dot{\theta}^2\sin\theta
-    \right).
-    $$
-
-    Thus,
-
-    $$
-    h_y^{(4)}
-    =
-    \frac{1}{M}
-    \left(
-    -\ddot{z}\sin\theta
-    -
-    2\dot{z}\dot{\theta}\cos\theta
-    -
-    z\ddot{\theta}\cos\theta
-    +
-    z\dot{\theta}^2\sin\theta
     \right).
     $$
 
@@ -2714,6 +2858,14 @@ def _(mo):
     =
     \frac{1}{M}
     \begin{bmatrix}
+    v_1\sin\theta
+    +
+    2\dot{z}\dot{\theta}\cos\theta
+    +
+    zv_2\cos\theta
+    -
+    z\dot{\theta}^2\sin\theta
+    \\[0.3cm]
     -v_1\cos\theta
     +
     2\dot{z}\dot{\theta}\sin\theta
@@ -2721,14 +2873,6 @@ def _(mo):
     zv_2\sin\theta
     +
     z\dot{\theta}^2\cos\theta
-    \\[0.3cm]
-    -v_1\sin\theta
-    -
-    2\dot{z}\dot{\theta}\cos\theta
-    -
-    zv_2\cos\theta
-    +
-    z\dot{\theta}^2\sin\theta
     \end{bmatrix}
     }
     $$
@@ -2760,6 +2904,14 @@ def _(mo):
     =
     \frac{1}{M}
     \begin{bmatrix}
+    v_1\sin\theta
+    +
+    zv_2\cos\theta
+    +
+    2\dot{z}\dot{\theta}\cos\theta
+    -
+    z\dot{\theta}^2\sin\theta
+    \\[0.3cm]
     -v_1\cos\theta
     +
     zv_2\sin\theta
@@ -2767,14 +2919,6 @@ def _(mo):
     2\dot{z}\dot{\theta}\sin\theta
     +
     z\dot{\theta}^2\cos\theta
-    \\[0.3cm]
-    -v_1\sin\theta
-    -
-    zv_2\cos\theta
-    -
-    2\dot{z}\dot{\theta}\cos\theta
-    +
-    z\dot{\theta}^2\sin\theta
     \end{bmatrix}.
     $$
 
@@ -2792,8 +2936,8 @@ def _(mo):
 
     $$
     \begin{bmatrix}
-    -v_1\cos\theta + zv_2\sin\theta\\
-    -v_1\sin\theta - zv_2\cos\theta
+    v_1\sin\theta + zv_2\cos\theta\\
+    -v_1\cos\theta + zv_2\sin\theta
     \end{bmatrix}
     =
     M
@@ -2803,13 +2947,13 @@ def _(mo):
     \end{bmatrix}
     -
     \begin{bmatrix}
+    2\dot{z}\dot{\theta}\cos\theta
+    -
+    z\dot{\theta}^2\sin\theta
+    \\
     2\dot{z}\dot{\theta}\sin\theta
     +
     z\dot{\theta}^2\cos\theta
-    \\
-    -2\dot{z}\dot{\theta}\cos\theta
-    +
-    z\dot{\theta}^2\sin\theta
     \end{bmatrix}.
     $$
 
@@ -2817,8 +2961,8 @@ def _(mo):
 
     $$
     \begin{bmatrix}
-    -\cos\theta & z\sin\theta\\
-    -\sin\theta & -z\cos\theta
+    \sin\theta & z\cos\theta\\
+    -\cos\theta & z\sin\theta
     \end{bmatrix}
     \begin{bmatrix}
     v_1\\
@@ -2832,20 +2976,20 @@ def _(mo):
     \end{bmatrix}
     -
     \begin{bmatrix}
+    2\dot{z}\dot{\theta}\cos\theta
+    -
+    z\dot{\theta}^2\sin\theta
+    \\
     2\dot{z}\dot{\theta}\sin\theta
     +
     z\dot{\theta}^2\cos\theta
-    \\
-    -2\dot{z}\dot{\theta}\cos\theta
-    +
-    z\dot{\theta}^2\sin\theta
     \end{bmatrix}.
     $$
 
     The determinant of the matrix is
 
     $$
-    z(\cos^2\theta+\sin^2\theta)=z.
+    z(\sin^2\theta+\cos^2\theta)=z.
     $$
 
     So, if
@@ -2864,9 +3008,9 @@ def _(mo):
     \boxed{
     v_1
     =
-    z\dot{\theta}^2
+    M(u_1\sin\theta-u_2\cos\theta)
     -
-    M(u_1\cos\theta+u_2\sin\theta)
+    2\dot{z}\dot{\theta}
     }
     $$
 
@@ -2877,9 +3021,9 @@ def _(mo):
     v_2
     =
     \frac{
-    M(u_1\sin\theta-u_2\cos\theta)
-    -
-    2\dot{z}\dot{\theta}
+    M(u_1\cos\theta+u_2\sin\theta)
+    +
+    z\dot{\theta}^2
     }{z}
     }
     $$
@@ -2914,11 +3058,11 @@ def _(M, g, l, np):
         dh_x = dx - (l / 6) * np.cos(theta) * dtheta
         dh_y = dy - (l / 6) * np.sin(theta) * dtheta
 
-        d2h_x = -(z / M) * np.cos(theta)
-        d2h_y = -(z / M) * np.sin(theta) - g
+        d2h_x = +(z / M) * np.sin(theta)
+        d2h_y = -(z / M) * np.cos(theta) - g
 
-        d3h_x = -(dz / M) * np.cos(theta) + (z * dtheta / M) * np.sin(theta)
-        d3h_y = -(dz / M) * np.sin(theta) - (z * dtheta / M) * np.cos(theta)
+        d3h_x = (dz / M) * np.sin(theta) + (z * dtheta / M) * np.cos(theta)
+        d3h_y = -(dz / M) * np.cos(theta) + (z * dtheta / M) * np.sin(theta)
 
         return np.array([
             h_x, h_y,
